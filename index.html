@@ -574,7 +574,7 @@
         <!-- ===== 描述区 ===== -->
         <div class="description-area" id="descriptionArea">
             <div class="description-text" id="descriptionText" contenteditable="false">图书馆使用说明：</div>
-            <span class="edit-hint" id="editHint">🔒 普通浏览</span>
+            <span class="edit-hint" id="editHint">🔒</span>
         </div>
 
         <!-- ===== 筛选栏 ===== -->
@@ -641,7 +641,7 @@
     <!-- ===== 编辑模态框 ===== -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-box">
-            <h2>✎ 编辑图书</h2>
+            <h2>✎ 编辑文章信息</h2>
             <div id="editFormContainer"></div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" id="modalCancelBtn">取消</button>
@@ -784,7 +784,7 @@
                         .order('id', { ascending: true });
 
                     if (error) {
-                        console.error('加载图书失败:', error);
+                        console.error('加载文章失败:', error);
                         showToast('加载数据失败: ' + error.message, 'error');
                         return false;
                     }
@@ -799,7 +799,7 @@
                     }
                     return true;
                 } catch (e) {
-                    console.error('加载图书异常:', e);
+                    console.error('加载文章异常:', e);
                     showToast('加载数据异常', 'error');
                     return false;
                 }
@@ -851,7 +851,7 @@
                         .upsert(BOOKS, { onConflict: 'id' });
 
                     if (error) {
-                        console.error('保存图书失败:', error);
+                        console.error('保存文章失败:', error);
                         showToast('保存失败: ' + error.message, 'error');
                         return false;
                     }
@@ -1033,7 +1033,7 @@
                     logoutBtn.style.display = 'inline-block';
                     adminTools.style.display = 'flex';
                     descriptionText.contentEditable = 'true';
-                    editHint.textContent = '✏️ 点击文字编辑 (管理员)';
+                    editHint.textContent = '✏️ 点击文字编辑';
                     addRowArea.style.display = 'none';
                     toggleAddRowBtn.style.display = 'inline-block';
                     renderAddRowSelectors();
@@ -1043,7 +1043,7 @@
                     logoutBtn.style.display = 'none';
                     adminTools.style.display = 'none';
                     descriptionText.contentEditable = 'false';
-                    editHint.textContent = '🔒 普通浏览';
+                    editHint.textContent = '🔒 ';
                     addRowArea.style.display = 'none';
                     toggleAddRowBtn.style.display = 'none';
                     closeEditModal();
@@ -1128,7 +1128,7 @@
 
                 if (filtered.length === 0) {
                     tableBody.innerHTML =
-                        `<tr><td colspan="${COLUMNS.length + (isAdmin ? 1 : 0)}" class="empty-message">📭 没有找到符合条件的书籍</td></tr>`;
+                        `<tr><td colspan="${COLUMNS.length + (isAdmin ? 1 : 0)}" class="empty-message">📭 没有找到符合条件的文章</td></tr>`;
                     return;
                 }
 
@@ -1177,7 +1177,7 @@
                     document.querySelectorAll('#tableBody .btn-sm.danger').forEach(btn => {
                         btn.addEventListener('click', () => {
                             const id = parseInt(btn.dataset.id);
-                            if (confirm('确定删除这本书吗？')) {
+                            if (confirm('确定删除这篇文章吗？')) {
                                 deleteBook(id);
                             }
                         });
@@ -1663,7 +1663,7 @@
                 });
 
                 console.log('✅ 图书馆管理系统初始化完成');
-                console.log(`📚 共加载 ${BOOKS.length} 本书`);
+                console.log(`📚 共加载 ${BOOKS.length} 篇文章`);
                 console.log('🔑 管理员密码: zmyj210602');
             }
 
