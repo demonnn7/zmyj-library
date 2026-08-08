@@ -773,7 +773,8 @@
                         const maxId = BOOKS.reduce((max, b) => Math.max(max, b.id), 0);
                         nextId = maxId + 1;
                     } else {
-                        await initDefaultBooks();
+                        BOOKS = [];
+                        nextId = 1;
                     }
                     return true;
                 } catch (e) {
@@ -1082,6 +1083,12 @@
 
                 filterIndicator.textContent = `(${filtered.length})`;
 
+                // 同步更新 filterToggleBtn 中的显示
+                const btnIndicator = filterToggleBtn.querySelector('#filterIndicator');
+                if (btnIndicator) {
+                    btnIndicator.textContent = `(${filtered.length})`;
+                }
+
                 if (filtered.length === 0) {
                     tableBody.innerHTML =
                         `<tr><td colspan="${COLUMNS.length + (isAdmin ? 1 : 0)}" class="empty-message">📭 没有找到符合条件的书籍</td></tr>`;
@@ -1199,6 +1206,10 @@
                 FILTER_FIELDS.forEach(field => { currentFilter[field] = new Set(); });
                 renderBooks(currentFilter);
                 filterIndicator.textContent = `(${BOOKS.length})`;
+                const btnIndicator = filterToggleBtn.querySelector('#filterIndicator');
+                if (btnIndicator) {
+                    btnIndicator.textContent = `(${BOOKS.length})`;
+                }
             }
 
             // ================================================================
