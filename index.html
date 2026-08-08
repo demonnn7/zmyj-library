@@ -184,6 +184,16 @@
             flex-wrap: wrap;
         }
 
+        /* ===== 筛选面板 - 搜索行 ===== */
+        .filter-search-row input:focus {
+            border-color: #1f4b6e;
+            box-shadow: 0 0 0 3px rgba(31, 75, 110, 0.1);
+        }
+        .filter-search-row input::placeholder {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
         /* ===== 筛选面板 ===== */
         .filter-panel {
             background: #ffffff;
@@ -580,6 +590,17 @@
 
         <!-- ===== 筛选面板 ===== -->
         <div class="filter-panel" id="filterPanel">
+            <div class="filter-search-row" style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem; padding-bottom:1rem; border-bottom:1px solid #e9edf2;">
+                <div style="display:flex; align-items:center; gap:0.5rem; flex:1; min-width:150px;">
+                    <label style="font-weight:500; font-size:0.85rem; color:#475569; white-space:nowrap;">📝 文名</label>
+                    <input type="text" id="searchTitle" placeholder="输入文名关键词" style="flex:1; padding:0.4rem 0.8rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white; outline:none; transition:border-color 0.2s;">
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem; flex:1; min-width:150px;">
+                    <label style="font-weight:500; font-size:0.85rem; color:#475569; white-space:nowrap;">✍️ 作者</label>
+                    <input type="text" id="searchAuthor" placeholder="输入作者关键词" style="flex:1; padding:0.4rem 0.8rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white; outline:none; transition:border-color 0.2s;">
+                </div>
+                <button class="btn btn-secondary" id="clearSearchBtn" style="padding:0.3rem 1rem;">清除</button>
+            </div>
             <div class="filter-grid" id="filterGrid"></div>
             <div class="filter-actions">
                 <button class="btn btn-secondary" id="resetFilterBtn">重置</button>
@@ -1059,6 +1080,14 @@
 
             function renderBooks(filter) {
                 filter = filter || currentFilter;
+
+                // ⚠️ 获取搜索框的值
+                const searchTitle = document.getElementById('searchTitle');
+                const searchAuthor = document.getElementById('searchAuthor');
+                const titleKeyword = searchTitle ? searchTitle.value.trim().toLowerCase() : '';
+                const authorKeyword = searchAuthor ? searchAuthor.value.trim().toLowerCase() : '';
+
+                
                 const filtered = BOOKS.filter(book => {
                     let platformMatch = true;
                     if (filter.platform.size > 0 && !filter.platform.has(book.platform)) platformMatch = false;
@@ -1077,8 +1106,16 @@
                     if (filter.car.size > 0 && !filter.car.has(book.car)) carMatch = false;
                     let chaptersMatch = true;
                     if (filter.chapters.size > 0 && !filter.chapters.has(book.chapters)) chaptersMatch = false;
+                    let titleMatch = true;
+                    if (titleKeyword) {
+                        titleMatch = (book.title || '').toLowerCase().includes(titleKeyword);
+                    }
+                    let authorMatch = true;
+                    if (authorKeyword) {
+                        authorMatch = (book.author || '').toLowerCase().includes(authorKeyword);
+                    }
                     return platformMatch && tagMatch && statusMatch && endingMatch && attrMatch && carMatch &&
-                        chaptersMatch;
+                        chaptersMatch && titleMatch && authorMatch;
                 });
 
                 filterIndicator.textContent = `(${filtered.length})`;
@@ -1153,6 +1190,12 @@
             // ================================================================
 
             function renderFilterPanel() {
+                // 保存当前搜索框的值
+                const searchTitle = document.getElementById('searchTitle');
+                const searchAuthor = document.getElementById('searchAuthor');
+                const savedTitle = searchTitle ? searchTitle.value : '';
+                const savedAuthor = searchAuthor ? searchAuthor.value : '';
+                
                 let html = '';
                 FILTER_FIELDS.forEach(fieldKey => {
                     const options = getFilterOptions(fieldKey);
@@ -1174,6 +1217,10 @@
                     html += `</div></div>`;
                 });
                 filterGrid.innerHTML = html;
+                
+                // 恢复搜索框的值
+                if (searchTitle) searchTitle.value = savedTitle;
+                if (searchAuthor) searchAuthor.value = savedAuthor;
             }
 
             function getFilterOptions(fieldKey) {
@@ -1554,6 +1601,10 @@
                 addBookBtn.addEventListener('click', addBookFromForm);
 
                 descriptionText.addEventListener('blur', saveDescription);
+                descriptionText.addEventListener('input', function() {
+                    clearTimeout(window._descSaveTimer);
+                    window._descSaveTimer = setTimeout(saveDescription, 1000);
+                });
 
                 modalCancelBtn.addEventListener('click', closeEditModal);
                 modalSaveBtn.addEventListener('click', saveEditModal);
@@ -1567,6 +1618,37 @@
                 optionsModal.addEventListener('click', function(e) {
                     if (e.target === optionsModal) closeOptionsModal();
                 });
+
+                const searchTitle = document.getElementById('searchTitle');
+                const searchAuthor = document.getElementById('searchAuthor');
+                const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+                if (searchTitle) {
+                    searchTitle.addEventListener('input', function() {
+                        applyFilterAndRender();
+                    });
+                    // 输入框获得焦点时全选内容（方便快速重新输入）
+                    searchTitle.addEventListener('focus', function() {
+                        this.select();
+                    });
+                }
+
+                if (searchAuthor) {
+                    searchAuthor.addEventListener('input', function() {
+                        applyFilterAndRender();
+                    });
+                    searchAuthor.addEventListener('focus', function() {
+                        this.select();
+                    });
+                }
+
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', function() {
+                        if (searchTitle) searchTitle.value = '';
+                        if (searchAuthor) searchAuthor.value = '';
+                        applyFilterAndRender();
+                    });
+                }
 
                 filterPanel.classList.remove('open');
                 filterToggleBtn.innerHTML = '<span>⚙️</span> 筛选 <span id="filterIndicator">(' + BOOKS.length +
