@@ -668,7 +668,7 @@
                 console.warn('⚠️ 请将 SUPABASE_URL 和 SUPABASE_ANON_KEY 替换为你的实际值');
             }
 
-            const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
             // ================================================================
             //  2. 数据状态
