@@ -668,7 +668,7 @@
                 console.warn('⚠️ 请将 SUPABASE_URL 和 SUPABASE_ANON_KEY 替换为你的实际值');
             }
 
-            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
             // ================================================================
             //  2. 数据状态
@@ -757,7 +757,7 @@
 
             async function loadBooksFromDB() {
                 try {
-                    const { data, error } = await supabase
+                    const { data, error } = await supabaseClient
                         .from('books')
                         .select('*')
                         .order('id', { ascending: true });
@@ -798,7 +798,7 @@
                 ];
 
                 for (const book of defaults) {
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('books')
                         .insert([{
                             title: book.title,
@@ -824,7 +824,7 @@
 
             async function saveBooksToDB() {
                 try {
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('books')
                         .upsert(BOOKS, { onConflict: 'id' });
 
@@ -843,7 +843,7 @@
 
             async function deleteBookFromDB(id) {
                 try {
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('books')
                         .delete()
                         .eq('id', id);
@@ -862,7 +862,7 @@
 
             async function loadDescriptionFromDB() {
                 try {
-                    const { data, error } = await supabase
+                    const { data, error } = await supabaseClient
                         .from('site_config')
                         .select('value')
                         .eq('key', 'description')
@@ -879,7 +879,7 @@
 
             async function saveDescriptionToDB(text) {
                 try {
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('site_config')
                         .upsert({
                             key: 'description',
@@ -901,7 +901,7 @@
 
             async function loadOptionsFromDB() {
                 try {
-                    const { data, error } = await supabase
+                    const { data, error } = await supabaseClient
                         .from('site_config')
                         .select('value')
                         .eq('key', 'options')
@@ -926,7 +926,7 @@
 
             async function saveOptionsToDB() {
                 try {
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('site_config')
                         .upsert({
                             key: 'options',
@@ -1372,7 +1372,7 @@
                     link
                 };
 
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('books')
                     .insert([newBook]);
 
