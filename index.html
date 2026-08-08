@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逐梦亚军图书馆</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="app" id="app">
+    <!-- 加载提示 -->
+    <div id="loadingOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);display:flex;justify-content:center;align-items:center;z-index:9999;font-size:1.2rem;color:#1e293b;">
+        <div style="text-align:center;">
+            <div style="font-size:3rem;margin-bottom:1rem;">📚</div>
+            <div>加载中...</div>
+        </div>
+    </div>
+
+    <!-- 头部 -->
+    <div class="header">
+        <div class="header-left">
+            <h1>📖 推文检索</h1>
+        </div>
+        <div class="login-area" id="loginArea">
+            <span class="user-badge" id="userBadge">👤 游客</span>
+            <button class="btn btn-primary" id="loginBtn">登录</button>
+            <button class="btn btn-secondary" id="logoutBtn" style="display:none;">退出</button>
+        </div>
+    </div>
+
+    <!-- 描述 -->
+    <div class="description-area" id="descriptionArea">
+        <div class="description-text" id="descriptionText" contenteditable="false">加载中...</div>
+        <span class="edit-hint" id="editHint">🔒 普通浏览</span>
+    </div>
+
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+        <button class="filter-trigger" id="filterToggleBtn">
+            <span>⚙️</span> 筛选 <span id="filterIndicator">(0)</span>
+        </button>
+        <div class="admin-tools" id="adminTools" style="display:none;">
+            <button class="btn btn-secondary" id="toggleAddRowBtn">➕ 添加条目</button>
+            <button class="btn btn-secondary" id="manageOptionsBtn">📝 管理选项</button>
+            <button class="btn btn-secondary" id="syncBtn" style="background:#e8f5e9;border-color:#66bb6a;">💾 保存到云端</button>
+        </div>
+    </div>
+
+    <!-- 筛选面板 -->
+    <div class="filter-panel" id="filterPanel">
+        <div class="filter-grid" id="filterGrid"></div>
+        <div class="filter-actions">
+            <button class="btn btn-secondary" id="resetFilterBtn">重置</button>
+            <button class="btn btn-primary" id="applyFilterBtn">确认筛选</button>
+        </div>
+    </div>
+
+    <!-- 表格 -->
+    <div class="table-container">
+        <table id="bookTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <!-- 添加行 -->
+        <div class="add-row-area" id="addRowArea" style="display:none;">
+            <div class="add-row-form" id="addRowForm">
+                <input type="text" placeholder="文名*" id="newTitle">
+                <input type="text" placeholder="作者*" id="newAuthor">
+                <select id="newPlatform"><option value="">平台*</option></select>
+                <select id="newStatus"><option value="">状态*</option></select>
+                <select id="newEnding"><option value="">结局*</option></select>
+                <select id="newAttributes"><option value="">属性*</option></select>
+                <select id="newCar"><option value="">🚗*</option></select>
+                <select id="newChapters"><option value="">章节*</option></select>
+                <input type="text" placeholder="链接" id="newLink">
+                <div style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center; width:100%;">
+                    <span style="font-size:0.8rem; color:#475569;">Tag (多选):</span>
+                    <div id="newTagsContainer" style="display:flex; flex-wrap:wrap; gap:0.3rem;"></div>
+                </div>
+                <button class="btn btn-primary" id="addBookBtn">添加</button>
+            </div>
+        </div>
+    </div>
+    <div class="footer-note">✅ 筛选后滚动位置不变 · 同字段多选项并集 · 不同字段交集</div>
+</div>
+
+<!-- 编辑模态框 -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <h2>✎ 编辑图书</h2>
+        <div id="editFormContainer"></div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="modalCancelBtn">取消</button>
+            <button class="btn btn-primary" id="modalSaveBtn">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 管理选项模态框 -->
+<div class="modal-overlay" id="optionsModal">
+    <div class="modal-box">
+        <h2>📝 管理可选类别</h2>
+        <p style="color:#475569; margin-bottom:1rem;">每个类别下的选项以标签形式展示，可删除或添加。</p>
+        <div id="optionsContainer"></div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="optionsCancelBtn">取消</button>
+            <button class="btn btn-primary" id="optionsSaveBtn">保存</button>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
