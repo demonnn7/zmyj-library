@@ -379,6 +379,26 @@
             padding: 0.2rem 1rem;
         }
 
+        /* 添加按钮禁用状态 */
+        #addBookBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #94a3b8 !important;
+            border-color: #94a3b8 !important;
+        }
+
+        /* 文名输入框重复时边框变红 */
+        #newTitle.duplicate {
+            border-color: #b91c1c !important;
+            box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+        }
+
+        /* 文名输入框可用时边框变绿 */
+        #newTitle.available {
+            border-color: #065f46 !important;
+            box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.1);
+        }
+
         /* ===== 模态框 ===== */
         .modal-overlay {
             position: fixed;
@@ -618,7 +638,11 @@
             <!-- 添加行 -->
             <div class="add-row-area" id="addRowArea" style="display:none;">
                 <div class="add-row-form" id="addRowForm">
-                    <input type="text" placeholder="文名*" id="newTitle" />
+                    <div style="display:flex; align-items:center; gap:0.5rem; flex:1 0 auto;">
+                        <input type="text" placeholder="文名*" id="newTitle" style="flex:1; min-width:70px; padding:0.3rem 0.6rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.8rem; background:white;" />
+                        <span id="titleDuplicateWarning" style="display:none; color:#b91c1c; font-size:0.7rem; white-space:nowrap;">⚠️ 已存在</span>
+                        <span id="titleAvailable" style="display:none; color:#065f46; font-size:0.7rem; white-space:nowrap;">✅ 可用</span>
+                    </div>    
                     <input type="text" placeholder="作者*" id="newAuthor" />
                     <select id="newPlatform"><option value="">平台*</option></select>
                     <select id="newStatus"><option value="">状态*</option></select>
@@ -1675,6 +1699,44 @@
                         if (searchTitle) searchTitle.value = '';
                         if (searchAuthor) searchAuthor.value = '';
                         applyFilterAndRender();
+                    });
+                }
+
+                // ========== 文名实时重复检测 ==========
+                const newTitleInput = document.getElementById('newTitle');
+                const duplicateWarning = document.getElementById('titleDuplicateWarning');
+                const titleAvailable = document.getElementById('titleAvailable');
+                const addBookBtn = document.getElementById('addBookBtn');
+
+                if (newTitleInput) {
+                    newTitleInput.addEventListener('input', function() {
+                        const title = this.value.trim();
+        
+                        if (title === '') {
+                            duplicateWarning.style.display = 'none';
+                            titleAvailable.style.display = 'none';
+                            if (addBookBtn) addBookBtn.disabled = false;
+                            this.classList.remove('duplicate', 'available');
+                            return;
+                        }
+        
+                        const isDuplicate = BOOKS.some(book => 
+                            book.title.trim().toLowerCase() === title.toLowerCase()
+                        );
+        
+                        if (isDuplicate) {
+                            duplicateWarning.style.display = 'inline';
+                            titleAvailable.style.display = 'none';
+                            if (addBookBtn) addBookBtn.disabled = true;
+                            this.classList.add('duplicate');
+                            this.classList.remove('available');
+                        } else {
+                            duplicateWarning.style.display = 'none';
+                            titleAvailable.style.display = 'inline';
+                            if (addBookBtn) addBookBtn.disabled = false;
+                            this.classList.add('available');
+                            this.classList.remove('duplicate');
+                        }
                     });
                 }
 
