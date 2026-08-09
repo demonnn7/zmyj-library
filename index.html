@@ -243,6 +243,51 @@
             flex-wrap: wrap;
         }
 
+        /* ===== 手机端筛选面板优化 ===== */
+        @media (max-width: 768px) {
+            .filter-panel {
+                padding: 1rem 0.8rem !important;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+            
+            .filter-panel .filter-grid > div {
+                flex: 1 1 100% !important;
+                min-width: 100% !important;
+                width: 100% !important;
+            }
+            
+            .filter-panel .filter-options {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.2rem 0.3rem !important;
+                max-height: 120px;
+                overflow-y: auto;
+                padding: 0.2rem 0;
+            }
+            
+            .filter-panel .filter-options label {
+                font-size: 0.7rem !important;
+                padding: 0.05rem 0.4rem 0.05rem 0.3rem !important;
+                white-space: nowrap;
+            }
+            
+            .filter-panel .filter-options input[type="checkbox"] {
+                width: 11px !important;
+                height: 11px !important;
+            }
+            
+            .filter-actions {
+                flex-wrap: wrap;
+                gap: 0.5rem !important;
+            }
+            
+            .filter-actions .btn {
+                font-size: 0.75rem !important;
+                padding: 0.2rem 0.8rem !important;
+            }
+        }
+
         /* ===== 搜索行 ===== */
         .search-row {
             display: flex;
@@ -1005,6 +1050,8 @@
                 ]
             };
 
+            let OPTIONS_BACKUP = null;
+
             // 筛选状态
             const FILTER_FIELDS = ['platform', 'tags', 'status', 'ending', 'attributes', 'car', 'chapters'];
             let currentFilter = {};
@@ -1463,6 +1510,13 @@
                         saveUserSession(user);
                         await loadUserReads();
 
+                        // ===== 新增：用户登录时，清除管理员状态 =====
+                        if (isAdmin) {
+                            isAdmin = false;
+                            clearAdminSession();
+                            updateUIForAdmin();  // 更新管理员相关 UI
+                        }
+
                         loginModal.classList.remove('active');
                         loginError.style.display = 'none';
                         loginUsername.value = '';
@@ -1533,6 +1587,12 @@
                             .from('user_reads')
                             .insert([{ user_id: user.id, read_ids: [] }]);
 
+                        if (isAdmin) {
+                            isAdmin = false;
+                            clearAdminSession();
+                            updateUIForAdmin();
+                        }
+
                         loginModal.classList.remove('active');
                         loginError.style.display = 'none';
                         loginUsername.value = '';
@@ -1556,6 +1616,14 @@
                 if (pwd === null) return;
 
                 if (pwd === ADMIN_PASSWORD) {
+                    if (currentUser) {
+                        clearUserSession();
+                        currentUser = null;
+                        userReads = [];
+                        userWants = [];
+                        updateUIForUser();  // 更新用户相关 UI
+                    }
+
                     isAdmin = true;
                     saveAdminSession(true);
                     updateUIForAdmin();
@@ -1592,7 +1660,7 @@
                     const { data, error } = await supabaseClient
                         .from('books')
                         .select('*')
-                        .order('id', { ascending: true });
+                        .order('sort_order', { ascending: true });  // 改为按 sort_order 排序
 
                     if (error) {
                         console.error('加载文章失败:', error);
@@ -1602,6 +1670,10 @@
 
                     if (data && data.length > 0) {
                         BOOKS = data;
+                        // 确保 sort_order 与数组顺序一致
+                        BOOKS.forEach((book, idx) => {
+                            book.sort_order = idx + 1;
+                        });
                         const maxId = BOOKS.reduce((max, b) => Math.max(max, b.id), 0);
                         nextId = maxId + 1;
                     } else {
@@ -1657,15 +1729,24 @@
 
             async function saveBooksToDB() {
                 try {
-                    const { error } = await supabaseClient
-                        .from('books')
-                        .upsert(BOOKS, { onConflict: 'id' });
+                    // 批量更新 sort_order（使用 Promise.all 并发执行）
+                    const updatePromises = BOOKS.map((book, index) => {
+                        return supabaseClient
+                            .from('books')
+                            .update({ sort_order: index + 1 })
+                            .eq('id', book.id);
+                    });
 
-                    if (error) {
-                        console.error('保存文章失败:', error);
-                        showToast('保存失败: ' + error.message, 'error');
+                    const results = await Promise.all(updatePromises);
+                    
+                    // 检查是否有错误
+                    const hasError = results.some(result => result.error);
+                    if (hasError) {
+                        console.error('保存排序失败:', results.filter(r => r.error).map(r => r.error));
+                        showToast('保存排序失败', 'error');
                         return false;
                     }
+                    
                     return true;
                 } catch (e) {
                     console.error('保存异常:', e);
@@ -1849,7 +1930,28 @@
                     let carMatch = true;
                     if (filter.car.size > 0 && !filter.car.has(book.car)) carMatch = false;
                     let chaptersMatch = true;
-                    if (filter.chapters.size > 0 && !filter.chapters.has(book.chapters)) chaptersMatch = false;
+                    if (filter.chapters.size > 0) {
+                        // 检查是否选中了"多篇章"
+                        const wantsMultiChapter = filter.chapters.has('多篇章');
+                        // 检查是否选中了"一发完"
+                        const wantsOneShot = filter.chapters.has('一发完');
+                        
+                        // 如果选中了"多篇章"，匹配所有"X章"格式的条目
+                        if (wantsMultiChapter && !wantsOneShot) {
+                            // 只选中了"多篇章"：匹配所有"X章"格式（包括"多篇章"本身）
+                            const isMultiChapter = /^\d+章$/.test(book.chapters) || book.chapters === '多篇章';
+                            chaptersMatch = isMultiChapter;
+                        } else if (wantsOneShot && !wantsMultiChapter) {
+                            // 只选中了"一发完"：精确匹配"一发完"
+                            chaptersMatch = book.chapters === '一发完';
+                        } else if (wantsOneShot && wantsMultiChapter) {
+                            // 同时选中"一发完"和"多篇章"：匹配"一发完"或"多篇章"或"X章"
+                            chaptersMatch = book.chapters === '一发完' || /^\d+章$/.test(book.chapters) || book.chapters === '多篇章';
+                        } else {
+                            // 其他情况（如选中了自定义选项）：精确匹配
+                            chaptersMatch = filter.chapters.has(book.chapters);
+                        }
+                    }
                     let titleMatch = true;
                     if (titleKeyword) {
                         titleMatch = (book.title || '').toLowerCase().includes(titleKeyword);
@@ -2078,6 +2180,10 @@
 
                                 const [movedBook] = BOOKS.splice(currentBookIndex, 1);
                                 BOOKS.splice(targetIndex, 0, movedBook);
+
+                                BOOKS.forEach((book, idx) => {
+                                    book.sort_order = idx + 1;
+                                });
 
                                 currentPage = 1;
                                 renderBooks(currentFilter);
@@ -2348,6 +2454,9 @@
 
                 // ---------- 触摸拖拽事件 ----------
                 function onTouchStart(e) {
+                    // ===== 关键：阻止默认行为，防止页面滚动 =====
+                    e.preventDefault();
+
                     const touch = e.touches[0];
                     const handle = e.currentTarget;
                     const row = handle.closest('tr');
@@ -2552,10 +2661,15 @@
                         BOOKS.splice(tempTargetIdx, 0, movedBook);
                     }
 
+                    BOOKS.forEach((book, idx) => {
+                        book.sort_order = idx + 1;
+                    });
+
                     isDragging = false;
                     targetRowIndex = null;
                     window._dragMouseY = null;
                     dragRowInitialRect = null;
+
 
                     renderBooks(currentFilter);
                     showToast('顺序已调整', 'success');
@@ -2652,6 +2766,10 @@
                         } else {
                             BOOKS.splice(targetIdx, 0, movedBook);
                         }
+                        
+                        BOOKS.forEach((book, idx) => {
+                            book.sort_order = idx + 1;
+                        });
 
                         isDragging = false;
                         targetRowIndex = null;
@@ -2670,7 +2788,7 @@
                     }, { passive: true });
 
                     // 使用独立的触摸事件处理
-                    handle.addEventListener('touchstart', onTouchStart, { passive: true });
+                    handle.addEventListener('touchstart', onTouchStart, { passive: false });
                 });
             }
             // ================================================================
@@ -2817,8 +2935,8 @@
 
                 let html = '';
 
-                // 使用 flex 容器，自动换行
-                html += `<div style="display:flex; flex-wrap:wrap; gap:0.5rem 1.5rem; align-items:flex-start;">`;
+                // 使用 flex 容器，自动换行，并添加响应式适配
+                html += `<div style="display:flex; flex-wrap:wrap; gap:0.5rem 1.5rem; align-items:flex-start; width:100%;">`;
 
                 orderedFields.forEach(fieldKey => {
                     const options = getFilterOptions(fieldKey);
@@ -2826,24 +2944,37 @@
                     const cols = config ? config.cols : 1;
                     const label = config ? config.label : fieldKey;
 
-                    // 计算宽度：每个基础单位约 150px，根据列数调整
-                    const baseWidth = 150;
-                    const width = cols * baseWidth + (cols - 1) * 10;
-                    // 如果是 tags，给更大弹性
-                    const flexGrow = fieldKey === 'tags' ? 3 : 1;
+                    // ===== 手机端适配：使用响应式宽度 =====
+                    // 在手机端（<768px），tags 占满整行，其他占一半
+                    // 在电脑端，按原计划分配
+                    let flexBasis;
+                    let minWidth;
+                    let flexGrow = fieldKey === 'tags' ? 3 : 1;
 
-                    html +=
-                        `<div style="flex: ${flexGrow} 0 ${width}px; min-width:${fieldKey === 'tags' ? '200px' : '120px'}; margin-bottom:0.3rem;">`;
-                    html +=
-                        `<div style="font-weight:500; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.02em; color:#475569; margin-bottom:0.2rem;">${label}</div>`;
-                    html +=
-                        `<div class="filter-options" data-field="${fieldKey}" style="display:flex; flex-wrap:wrap; gap:0.2rem 0.4rem;">`;
+                    if (fieldKey === 'tags') {
+                        // tag 在手机端占满整行，电脑端占 4 列
+                        flexBasis = '100%';
+                        minWidth = '200px';
+                        flexGrow = 3;
+                    } else if (fieldKey === 'platform') {
+                        // 平台在手机端占一半，电脑端占 2 列
+                        flexBasis = 'calc(50% - 0.75rem)';
+                        minWidth = '120px';
+                    } else {
+                        // 其他在手机端占一半，电脑端占 1 列
+                        flexBasis = 'calc(50% - 0.75rem)';
+                        minWidth = '100px';
+                    }
+
+                    html += `<div style="flex: ${flexGrow} 1 ${flexBasis}; min-width:${minWidth}; margin-bottom:0.3rem; overflow:hidden;">`;
+                    html += `<div style="font-weight:500; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.02em; color:#475569; margin-bottom:0.2rem;">${label}</div>`;
+                    html += `<div class="filter-options" data-field="${fieldKey}" style="display:flex; flex-wrap:wrap; gap:0.2rem 0.4rem; width:100%;">`;
 
                     options.forEach(opt => {
                         const checked = currentFilter[fieldKey]?.has(opt) || false;
-                        html +=
-                            `<label style="display:flex; align-items:center; gap:0.15rem; font-weight:400; font-size:0.8rem; background:#f1f4f9; padding:0.05rem 0.4rem 0.05rem 0.3rem; border-radius:30px; cursor:pointer; border:1px solid transparent; white-space:nowrap;">
-                            <input type="checkbox" value="${opt}" data-field="${fieldKey}" ${checked ? 'checked' : ''} style="accent-color:#1f4b6e; width:13px; height:13px; cursor:pointer;">
+                        // 确保标签不溢出，自动换行
+                        html += `<label style="display:inline-flex; align-items:center; gap:0.15rem; font-weight:400; font-size:0.8rem; background:#f1f4f9; padding:0.05rem 0.4rem 0.05rem 0.3rem; border-radius:30px; cursor:pointer; border:1px solid transparent; white-space:nowrap; max-width:100%;">
+                            <input type="checkbox" value="${opt}" data-field="${fieldKey}" ${checked ? 'checked' : ''} style="accent-color:#1f4b6e; width:13px; height:13px; cursor:pointer; flex-shrink:0;">
                             ${opt}
                         </label>`;
                     });
@@ -2859,6 +2990,12 @@
             }
 
             function getFilterOptions(fieldKey) {
+                // 如果是 chapters 字段，只使用 OPTIONS 中预定义的选项，不从 BOOKS 中提取
+                if (fieldKey === 'chapters') {
+                    return OPTIONS.chapters || [];
+                }
+                
+                // 其他字段：从 BOOKS 中提取 + 预定义选项合并
                 const allValues = BOOKS.flatMap(book => {
                     if (fieldKey === 'tags') return book.tags;
                     return [book[fieldKey]];
@@ -2941,8 +3078,7 @@
                         <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                             <select id="addChaptersType" style="flex:0 0 auto; min-width:100px;">
                                 <option value="">请选择</option>
-                                <option value="一发完">一发完</option>
-                                <option value="多篇章">多篇章</option>
+                                ${OPTIONS.chapters.map(c => `<option value="${c}">${c}</option>`).join('')}
                             </select>
                             <span id="addChaptersNumberWrapper" style="display:none; align-items:center; gap:0.3rem;">
                                 <input type="number" id="addChaptersNumber" placeholder="章节数" min="1" max="999" style="width:80px; padding:0.3rem 0.5rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white;" />
@@ -3128,8 +3264,7 @@
                     <div class="modal-field"><label>章节</label>
                         <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                             <select id="editChaptersType" style="flex:0 0 auto; min-width:100px;">
-                                <option value="一发完" ${chaptersType === '一发完' ? 'selected' : ''}>一发完</option>
-                                <option value="多篇章" ${chaptersType === '多篇章' ? 'selected' : ''}>多篇章</option>
+                                ${OPTIONS.chapters.map(c => `<option value="${c}" ${c === chaptersType ? 'selected' : ''}>${c}</option>`).join('')}
                             </select>
                             <span id="editChaptersNumberWrapper" style="display:${chaptersType === '多篇章' ? 'flex' : 'none'}; align-items:center; gap:0.3rem;">
                                 <input type="number" id="editChaptersNumber" placeholder="章节数" min="1" max="999" value="${chaptersNumber}" style="width:80px; padding:0.3rem 0.5rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white;" />
@@ -3251,7 +3386,8 @@
                     attributes,
                     car,
                     chapters,
-                    link
+                    link,
+                    sort_order: BOOKS.length + 1    
                 };
 
                 const { error } = await supabaseClient
@@ -3338,12 +3474,22 @@
             }
 
             function openOptionsModal() {
+                OPTIONS_BACKUP = JSON.parse(JSON.stringify(OPTIONS));
                 renderOptionsManager();
                 optionsModal.classList.add('active');
             }
 
             function closeOptionsModal() {
                 optionsModal.classList.remove('active');
+                // 如果有点击取消的标记，恢复备份
+                if (OPTIONS_BACKUP) {
+                    OPTIONS = JSON.parse(JSON.stringify(OPTIONS_BACKUP));
+                    OPTIONS_BACKUP = null;
+                    // 重新渲染相关界面
+                    renderFilterPanel();
+                    renderAddRowSelectors();
+                    renderBooks(currentFilter);
+                }
             }
 
             async function saveOptionsAndClose() {
@@ -3546,8 +3692,23 @@
                 });
 
                 manageOptionsBtn.addEventListener('click', openOptionsModal);
-                optionsCancelBtn.addEventListener('click', closeOptionsModal);
-                optionsSaveBtn.addEventListener('click', saveOptionsAndClose);
+                optionsCancelBtn.addEventListener('click', function() {
+                    // 取消时恢复备份
+                    if (OPTIONS_BACKUP) {
+                        OPTIONS = JSON.parse(JSON.stringify(OPTIONS_BACKUP));
+                        OPTIONS_BACKUP = null;
+                        // 重新渲染相关界面
+                        renderFilterPanel();
+                        renderAddRowSelectors();
+                        renderBooks(currentFilter);
+                    }
+                    optionsModal.classList.remove('active');
+                });
+                optionsSaveBtn.addEventListener('click', function() {
+                    // 保存时清除备份，确认修改
+                    OPTIONS_BACKUP = null;
+                    saveOptionsAndClose();
+                });
                 optionsModal.addEventListener('click', function(e) {
                     if (e.target === optionsModal) closeOptionsModal();
                 });
