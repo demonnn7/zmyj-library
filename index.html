@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0, user-scalable=yes" />
     <title>逐梦亚军图书馆</title>
     <style>
         /* ===== 全局重置 & 基础 ===== */
@@ -2130,6 +2130,11 @@
                 let dragStartMouseY = 0;
                 let lastMouseY = 0;
 
+                // ---------- 触摸拖拽相关变量 ----------
+                let touchDragClone = null;
+                let touchOffsetY = 0;
+                let touchStartRowTop = 0;
+
                 // 停止自动滚动
                 function stopAutoScroll() {
                     if (scrollFrame) {
@@ -2162,7 +2167,6 @@
                     const containerRect = container.getBoundingClientRect();
                     const mouseY = window._dragMouseY || (containerRect.top + containerRect.height / 2);
 
-                    // 计算鼠标相对于容器内容的位置（考虑页面滚动）
                     const pageScrollDelta = window.scrollY - initialPageScrollY;
                     const mouseRelativeToContainer = mouseY - containerRect.top + container.scrollTop + pageScrollDelta;
 
@@ -2196,6 +2200,10 @@
                     indicators.forEach(el => el.remove());
                     dragRow = null;
                     dragRowInitialRect = null;
+                    if (touchDragClone && touchDragClone.parentNode) {
+                        touchDragClone.parentNode.removeChild(touchDragClone);
+                        touchDragClone = null;
+                    }
                 }
 
                 // 在目标行上方插入深色指示线
@@ -2285,10 +2293,281 @@
                     return targetRow;
                 }
 
+                // ---------- 鼠标拖拽事件 ----------
+                function onDocumentDragOver(e) {
+                    if (!isDragging || !dragRow) return;
+                    e.preventDefault();
+
+                    window._dragMouseY = e.clientY;
+                    lastMouseY = e.clientY;
+
+                    updateDragRowPosition();
+
+                    const mouseY = e.clientY;
+                    const targetRow = findTargetRow(mouseY);
+
+                    rows.forEach(r => r.classList.remove('drag-over'));
+                    const indicators = document.querySelectorAll('.drag-indicator-line');
+                    indicators.forEach(el => el.remove());
+
+                    if (targetRow && targetRow !== dragRow) {
+                        const targetBookId = parseInt(targetRow.querySelector('.edit')?.dataset.id);
+                        const targetIndex = BOOKS.findIndex(b => b.id === targetBookId);
+                        if (targetIndex !== -1 && targetIndex !== dragIndex) {
+                            targetRow.classList.add('drag-over');
+                            showDragIndicator(targetRow);
+                            targetRowIndex = targetIndex;
+                        }
+                    } else {
+                        targetRowIndex = null;
+                    }
+
+                    const viewportHeight = window.innerHeight;
+                    const mouseYInViewport = e.clientY;
+                    const scrollThreshold = 80;
+
+                    const distanceToPageTop = mouseYInViewport;
+                    const distanceToPageBottom = viewportHeight - mouseYInViewport;
+
+                    const maxScrollY = document.documentElement.scrollHeight - viewportHeight;
+                    const canScrollUp = window.scrollY > 0;
+                    const canScrollDown = window.scrollY < maxScrollY;
+
+                    if (distanceToPageTop < scrollThreshold && canScrollUp) {
+                        if (!scrollFrame) {
+                            startAutoScroll(-1);
+                        }
+                    } else if (distanceToPageBottom < scrollThreshold && canScrollDown) {
+                        if (!scrollFrame) {
+                            startAutoScroll(1);
+                        }
+                    } else {
+                        stopAutoScroll();
+                    }
+                }
+
+                // ---------- 触摸拖拽事件 ----------
+                function onTouchStart(e) {
+                    const touch = e.touches[0];
+                    const handle = e.currentTarget;
+                    const row = handle.closest('tr');
+                    
+                    // 检查是否点击的是拖拽手柄
+                    if (!row) return;
+                    
+                    const bookId = parseInt(row.querySelector('.edit')?.dataset.id);
+                    const idx = BOOKS.findIndex(b => b.id === bookId);
+                    if (idx === -1) return;
+
+                    // 阻止页面滚动
+                    e.preventDefault();
+
+                    dragIndex = idx;
+                    dragRow = row;
+                    isDragging = true;
+                    container = document.querySelector('.table-container');
+
+                    const rect = row.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    rowHeight = rect.height;
+
+                    touchOffsetY = touch.clientY - rect.top;
+                    touchStartRowTop = rect.top;
+                    dragStartY = touch.clientY - rect.top;
+                    initialPageScrollY = window.scrollY;
+                    dragStartMouseY = touch.clientY;
+                    lastMouseY = touch.clientY;
+
+                    dragRowInitialRect = {
+                        top: rect.top - containerRect.top + container.scrollTop,
+                        left: rect.left - containerRect.left
+                    };
+
+                    window._dragMouseY = touch.clientY;
+
+                    // 创建触摸拖拽克隆（用于视觉反馈）
+                    touchDragClone = row.cloneNode(true);
+                    touchDragClone.style.position = 'fixed';
+                    touchDragClone.style.zIndex = '9999';
+                    touchDragClone.style.pointerEvents = 'none';
+                    touchDragClone.style.width = row.offsetWidth + 'px';
+                    touchDragClone.style.background = '#ffffff';
+                    touchDragClone.style.boxShadow = '0 8px 30px rgba(0,0,0,0.25)';
+                    touchDragClone.style.borderRadius = '8px';
+                    touchDragClone.style.border = '2px solid #1f4b6e';
+                    touchDragClone.style.opacity = '0.92';
+                    touchDragClone.style.display = 'table';
+                    touchDragClone.style.tableLayout = 'fixed';
+                    touchDragClone.style.transform = 'scale(1.02)';
+                    
+                    // 复制列宽
+                    const cells = row.querySelectorAll('td');
+                    const cloneCells = touchDragClone.querySelectorAll('td');
+                    cells.forEach((td, idx2) => {
+                        if (cloneCells[idx2]) {
+                            cloneCells[idx2].style.width = td.offsetWidth + 'px';
+                            cloneCells[idx2].style.minWidth = td.offsetWidth + 'px';
+                            cloneCells[idx2].style.maxWidth = td.offsetWidth + 'px';
+                            cloneCells[idx2].style.boxSizing = 'border-box';
+                        }
+                    });
+                    
+                    touchDragClone.querySelectorAll('.edit, .danger, .drag-handle').forEach(el => {
+                        el.style.pointerEvents = 'none';
+                    });
+                    
+                    document.body.appendChild(touchDragClone);
+                    touchDragClone.style.left = (touch.clientX - 10) + 'px';
+                    touchDragClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+
+                    row.classList.add('dragging');
+                    row.style.opacity = '0.4';
+                    row.style.zIndex = '10';
+                    row.style.position = 'relative';
+                    row.style.transition = 'none';
+                    row.style.boxShadow = '0 2px 12px rgba(0,0,0,0.1)';
+                    row.style.background = '#ffffff';
+
+                    // 绑定触摸移动和结束事件
+                    document.addEventListener('touchmove', onTouchMove, { passive: false });
+                    document.addEventListener('touchend', onTouchEnd, { passive: false });
+                    document.addEventListener('touchcancel', onTouchEnd, { passive: false });
+                }
+
+                function onTouchMove(e) {
+                    e.preventDefault();
+                    if (!isDragging || !dragRow) return;
+
+                    const touch = e.touches[0];
+                    const clientY = touch.clientY;
+
+                    window._dragMouseY = clientY;
+                    lastMouseY = clientY;
+
+                    // 更新克隆位置
+                    if (touchDragClone) {
+                        touchDragClone.style.left = (touch.clientX - 10) + 'px';
+                        touchDragClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+                    }
+
+                    // 更新行位置
+                    updateDragRowPosition();
+
+                    // 查找目标行
+                    const targetRow = findTargetRow(clientY);
+
+                    rows.forEach(r => r.classList.remove('drag-over'));
+                    const indicators = document.querySelectorAll('.drag-indicator-line');
+                    indicators.forEach(el => el.remove());
+
+                    if (targetRow && targetRow !== dragRow) {
+                        const targetBookId = parseInt(targetRow.querySelector('.edit')?.dataset.id);
+                        const targetIndex = BOOKS.findIndex(b => b.id === targetBookId);
+                        if (targetIndex !== -1 && targetIndex !== dragIndex) {
+                            targetRow.classList.add('drag-over');
+                            showDragIndicator(targetRow);
+                            targetRowIndex = targetIndex;
+                        }
+                    } else {
+                        targetRowIndex = null;
+                    }
+
+                    // 页面滚动检测
+                    const viewportHeight = window.innerHeight;
+                    const mouseYInViewport = clientY;
+                    const scrollThreshold = 80;
+
+                    const distanceToPageTop = mouseYInViewport;
+                    const distanceToPageBottom = viewportHeight - mouseYInViewport;
+
+                    const maxScrollY = document.documentElement.scrollHeight - viewportHeight;
+                    const canScrollUp = window.scrollY > 0;
+                    const canScrollDown = window.scrollY < maxScrollY;
+
+                    if (distanceToPageTop < scrollThreshold && canScrollUp) {
+                        if (!scrollFrame) {
+                            startAutoScroll(-1);
+                        }
+                    } else if (distanceToPageBottom < scrollThreshold && canScrollDown) {
+                        if (!scrollFrame) {
+                            startAutoScroll(1);
+                        }
+                    } else {
+                        stopAutoScroll();
+                    }
+                }
+
+                function onTouchEnd(e) {
+                    if (!isDragging) {
+                        return;
+                    }
+
+                    document.removeEventListener('touchmove', onTouchMove);
+                    document.removeEventListener('touchend', onTouchEnd);
+                    document.removeEventListener('touchcancel', onTouchEnd);
+
+                    // 清理克隆
+                    if (touchDragClone && touchDragClone.parentNode) {
+                        touchDragClone.parentNode.removeChild(touchDragClone);
+                        touchDragClone = null;
+                    }
+
+                    // 清除高亮
+                    rows.forEach(r => r.classList.remove('drag-over'));
+                    const indicators = document.querySelectorAll('.drag-indicator-line');
+                    indicators.forEach(el => el.remove());
+
+                    if (dragIndex === null || !isDragging) {
+                        clearAllDragStates();
+                        return;
+                    }
+
+                    let targetIdx = targetRowIndex;
+                    if (targetIdx === null) {
+                        const targetBookId = dragRow?.querySelector('.edit')?.dataset.id;
+                        if (targetBookId) {
+                            targetIdx = BOOKS.findIndex(b => b.id === parseInt(targetBookId));
+                        }
+                    }
+
+                    // 清理拖拽状态
+                    const tempDragRow = dragRow;
+                    const tempDragIndex = dragIndex;
+                    const tempTargetIdx = targetIdx;
+
+                    clearAllDragStates();
+                    stopAutoScroll();
+                    window._dragMouseY = null;
+                    dragRowInitialRect = null;
+
+                    if (tempTargetIdx === -1 || tempDragIndex === tempTargetIdx || tempTargetIdx === null) {
+                        isDragging = false;
+                        return;
+                    }
+
+                    const [movedBook] = BOOKS.splice(tempDragIndex, 1);
+                    if (tempTargetIdx > tempDragIndex) {
+                        BOOKS.splice(tempTargetIdx - 1, 0, movedBook);
+                    } else {
+                        BOOKS.splice(tempTargetIdx, 0, movedBook);
+                    }
+
+                    isDragging = false;
+                    targetRowIndex = null;
+                    window._dragMouseY = null;
+                    dragRowInitialRect = null;
+
+                    renderBooks(currentFilter);
+                    showToast('顺序已调整', 'success');
+                    saveBooksToDB();
+                }
+
+                // ---------- 绑定事件到每个行 ----------
                 rows.forEach(row => {
                     const handle = row.querySelector('.drag-handle');
                     if (!handle) return;
 
+                    // 鼠标拖拽事件（桌面端）
                     handle.addEventListener('dragstart', function(e) {
                         const bookId = parseInt(row.querySelector('.edit')?.dataset.id);
                         dragIndex = BOOKS.findIndex(b => b.id === bookId);
@@ -2328,65 +2607,12 @@
                         row.style.boxShadow = '0 2px 12px rgba(0,0,0,0.1)';
                         row.style.background = '#ffffff';
 
-                        document.addEventListener('dragover', documentDragOver);
+                        document.addEventListener('dragover', onDocumentDragOver);
                     });
-
-                    function documentDragOver(e) {
-                        if (!isDragging || !dragRow) return;
-                        e.preventDefault();
-
-                        window._dragMouseY = e.clientY;
-                        lastMouseY = e.clientY;
-
-                        updateDragRowPosition();
-
-                        const mouseY = e.clientY;
-                        const targetRow = findTargetRow(mouseY);
-
-                        rows.forEach(r => r.classList.remove('drag-over'));
-                        const indicators = document.querySelectorAll('.drag-indicator-line');
-                        indicators.forEach(el => el.remove());
-
-                        if (targetRow && targetRow !== dragRow) {
-                            const targetBookId = parseInt(targetRow.querySelector('.edit')?.dataset.id);
-                            const targetIndex = BOOKS.findIndex(b => b.id === targetBookId);
-                            if (targetIndex !== -1 && targetIndex !== dragIndex) {
-                                targetRow.classList.add('drag-over');
-                                showDragIndicator(targetRow);
-                                targetRowIndex = targetIndex;
-                            }
-                        } else {
-                            targetRowIndex = null;
-                        }
-
-                        // ===== 页面级滚动检测 =====
-                        const viewportHeight = window.innerHeight;
-                        const mouseYInViewport = e.clientY;
-                        const scrollThreshold = 80;
-
-                        const distanceToPageTop = mouseYInViewport;
-                        const distanceToPageBottom = viewportHeight - mouseYInViewport;
-
-                        const maxScrollY = document.documentElement.scrollHeight - viewportHeight;
-                        const canScrollUp = window.scrollY > 0;
-                        const canScrollDown = window.scrollY < maxScrollY;
-
-                        if (distanceToPageTop < scrollThreshold && canScrollUp) {
-                            if (!scrollFrame) {
-                                startAutoScroll(-1);
-                            }
-                        } else if (distanceToPageBottom < scrollThreshold && canScrollDown) {
-                            if (!scrollFrame) {
-                                startAutoScroll(1);
-                            }
-                        } else {
-                            stopAutoScroll();
-                        }
-                    }
 
                     handle.addEventListener('dragend', function(e) {
                         isDragging = false;
-                        document.removeEventListener('dragover', documentDragOver);
+                        document.removeEventListener('dragover', onDocumentDragOver);
                         clearAllDragStates();
                         stopAutoScroll();
                         window._dragMouseY = null;
@@ -2400,7 +2626,7 @@
 
                     row.addEventListener('drop', function(e) {
                         e.preventDefault();
-                        document.removeEventListener('dragover', documentDragOver);
+                        document.removeEventListener('dragover', onDocumentDragOver);
                         clearAllDragStates();
                         stopAutoScroll();
 
@@ -2436,9 +2662,17 @@
                         showToast('顺序已调整', 'success');
                         saveBooksToDB();
                     });
+
+                    // ========== 触摸拖拽事件（手机端） ==========
+                    // 防止触摸时触发页面滚动
+                    handle.addEventListener('touchstart', function(e) {
+                        // 不在这里处理，由 onTouchStart 处理
+                    }, { passive: true });
+
+                    // 使用独立的触摸事件处理
+                    handle.addEventListener('touchstart', onTouchStart, { passive: true });
                 });
             }
-
             // ================================================================
             //  10. 分页控件
             // ================================================================
