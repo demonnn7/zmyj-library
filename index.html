@@ -350,6 +350,82 @@
             text-align: right;
         }
 
+        /* ===== 拖拽手柄 ===== */
+        .drag-handle {
+            display: inline-block;
+            color: #94a3b8;
+            font-size: 1.2rem;
+            cursor: grab;
+            user-select: none;
+            padding: 0 0.2rem;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .drag-handle:hover {
+            color: #1f4b6e;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* ===== 拖拽状态 ===== */
+        .draggable-row.dragging {
+            opacity: 0.4;
+            background: #eef2ff;
+        }
+        .draggable-row.drag-over {
+            border-bottom: 3px solid #1f4b6e;
+        }
+
+        /* ===== 序号列悬停效果 ===== */
+        .index-cell:hover {
+            background: #eef2f6;
+        }
+
+        /* ===== 序号输入框 ===== */
+        .index-input {
+            width: 40px;
+            padding: 0.1rem 0.2rem;
+            border: 2px solid #1f4b6e;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            background: white;
+            color: #1e293b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(31, 75, 110, 0.15);
+        }
+        .index-input:focus {
+            border-color: #143049;
+            box-shadow: 0 0 0 4px rgba(31, 75, 110, 0.2);
+        }
+
+        /* 序号列可编辑
+        .index-cell {
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            min-width: 40px;
+            text-align: center;
+        }
+        .index-cell:hover {
+            background: #eef2f6;
+            border-radius: 4px;
+        }
+        .index-input {
+            width: 50px;
+            padding: 0.1rem 0.3rem;
+            border: 2px solid #1f4b6e;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            background: white;
+            color: #1e293b;
+            outline: none;
+        } */
+
         /* ===== 添加行 ===== */
         .add-row-area {
             padding: 1rem 0.8rem;
@@ -377,6 +453,14 @@
         }
         .add-row-form .btn {
             padding: 0.2rem 1rem;
+        }
+
+        /* 模态框中确认按钮禁用状态 */
+        #addModalSaveBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #94a3b8 !important;
+            border-color: #94a3b8 !important;
         }
 
         /* ===== 模态框 ===== */
@@ -614,25 +698,9 @@
                 <thead id="tableHead"></thead>
                 <tbody id="tableBody"></tbody>
             </table>
-
-            <!-- 添加行 -->
-            <div class="add-row-area" id="addRowArea" style="display:none;">
-                <div class="add-row-form" id="addRowForm">
-                    <input type="text" placeholder="文名*" id="newTitle" />
-                    <input type="text" placeholder="作者*" id="newAuthor" />
-                    <select id="newPlatform"><option value="">平台*</option></select>
-                    <select id="newStatus"><option value="">状态*</option></select>
-                    <select id="newEnding"><option value="">结局*</option></select>
-                    <select id="newAttributes"><option value="">属性*</option></select>
-                    <select id="newCar"><option value="">🚗*</option></select>
-                    <select id="newChapters"><option value="">章节*</option></select>
-                    <input type="text" placeholder="链接" id="newLink" />
-                    <div style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center; width:100%;">
-                        <span style="font-size:0.8rem; color:#475569;">Tag (多选):</span>
-                        <div id="newTagsContainer" style="display:flex; flex-wrap:wrap; gap:0.3rem;"></div>
-                    </div>
-                    <button class="btn btn-primary" id="addBookBtn">添加</button>
-                </div>
+            <!-- 表格上方提示 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 1rem; background:#f8fafc; border-bottom:1px solid #e9edf2; flex-wrap:wrap; gap:0.5rem;">
+                <span style="font-size:0.8rem; color:#64748b;">🔄 管理员可拖拽行调整顺序，或双击序号手动修改</span>
             </div>
         </div>
 
@@ -659,6 +727,20 @@
             <div class="modal-actions">
                 <button class="btn btn-secondary" id="optionsCancelBtn">取消</button>
                 <button class="btn btn-primary" id="optionsSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 新增条目模态框 ===== -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-box">
+            <h2>➕ 添加新文章</h2>
+            <div id="addFormContainer">
+                <!-- 由 JavaScript 动态生成 -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="addModalCancelBtn">取消</button>
+                <button class="btn btn-primary" id="addModalSaveBtn">确认添加</button>
             </div>
         </div>
     </div>
@@ -698,6 +780,10 @@
             let BOOKS = [];
             let nextId = 1;
 
+            // 分页状态
+            let currentPage = 1;
+            const pageSize = 10;
+
             // 选项配置
             let OPTIONS = {
                 platform: ['lofter', 'ao3', 'web', '小红书', '私站'],
@@ -720,7 +806,6 @@
             // UI 状态
             let isAdmin = false;
             let description = '图书馆使用说明：';
-            let addRowVisible = false;
 
             // ================================================================
             //  3. DOM 引用
@@ -739,9 +824,8 @@
             const logoutBtn = $('logoutBtn');
             const userBadge = $('userBadge');
             const adminTools = $('adminTools');
-            const addRowArea = $('addRowArea');
             const toggleAddRowBtn = $('toggleAddRowBtn');
-            const addBookBtn = $('addBookBtn');
+            //const addBookBtn = $('addBookBtn');
             const descriptionText = $('descriptionText');
             const editHint = $('editHint');
             const editModal = $('editModal');
@@ -1034,9 +1118,7 @@
                     adminTools.style.display = 'flex';
                     descriptionText.contentEditable = 'true';
                     editHint.textContent = '✏️ 点击文字编辑';
-                    addRowArea.style.display = 'none';
                     toggleAddRowBtn.style.display = 'inline-block';
-                    renderAddRowSelectors();
                 } else {
                     userBadge.textContent = '👤 游客';
                     loginBtn.style.display = 'inline-block';
@@ -1044,7 +1126,6 @@
                     adminTools.style.display = 'none';
                     descriptionText.contentEditable = 'false';
                     editHint.textContent = '🔒 ';
-                    addRowArea.style.display = 'none';
                     toggleAddRowBtn.style.display = 'none';
                     closeEditModal();
                     closeOptionsModal();
@@ -1057,23 +1138,42 @@
             //  8. 渲染函数
             // ================================================================
 
+            // const COLUMNS = [
+            //     { key: 'index', label: '#' }, 
+            //     { key: 'title', label: '文名' },
+            //     { key: 'author', label: '作者' },
+            //     { key: 'platform', label: '平台' },
+            //     { key: 'tags', label: 'tag' },
+            //     { key: 'status', label: '更新状态' },
+            //     { key: 'ending', label: '结局' },
+            //     { key: 'attributes', label: '属性' },
+            //     { key: 'car', label: '🚗' },
+            //     { key: 'chapters', label: '章节' },
+            //     { key: 'link', label: '链接' }
+            // ];
+
             const COLUMNS = [
-                { key: 'title', label: '文名' },
-                { key: 'author', label: '作者' },
-                { key: 'platform', label: '平台' },
-                { key: 'tags', label: 'tag' },
-                { key: 'status', label: '更新状态' },
-                { key: 'ending', label: '结局' },
-                { key: 'attributes', label: '属性' },
-                { key: 'car', label: '🚗' },
-                { key: 'chapters', label: '章节' },
-                { key: 'link', label: '链接' }
+                { key: 'index', label: '#', width: '60px' },
+                { key: 'title', label: '文名', width: '180px' },
+                { key: 'author', label: '作者', width: '100px' },
+                { key: 'platform', label: '平台', width: '80px' },
+                { key: 'tags', label: 'tag', width: '160px' },
+                { key: 'status', label: '更新状态', width: '100px' },
+                { key: 'ending', label: '结局', width: '60px' },
+                { key: 'attributes', label: '属性', width: '80px' },
+                { key: 'car', label: '🚗', width: '50px' },
+                { key: 'chapters', label: '章节', width: '100px' },
+                { key: 'link', label: '链接', width: '100px' }
             ];
 
             function renderTableHeader() {
                 let html = '<tr>';
-                COLUMNS.forEach(col => { html += `<th>${col.label}</th>`; });
-                if (isAdmin) html += `<th>操作</th>`;
+                if (isAdmin) {
+                    html += `<th style="width:100px; min-width:100px; max-width:100px;">操作</th>`;
+                }
+                COLUMNS.forEach(col => {
+                    html += `<th style="width:${col.width}; min-width:${col.width}; max-width:${col.width};">${col.label}</th>`;
+                });
                 html += '</tr>';
                 tableHead.innerHTML = html;
             }
@@ -1095,13 +1195,13 @@
             function renderBooks(filter) {
                 filter = filter || currentFilter;
 
-                // ⚠️ 获取搜索框的值
+                // 获取搜索框的值
                 const searchTitle = document.getElementById('searchTitle');
                 const searchAuthor = document.getElementById('searchAuthor');
                 const titleKeyword = searchTitle ? searchTitle.value.trim().toLowerCase() : '';
                 const authorKeyword = searchAuthor ? searchAuthor.value.trim().toLowerCase() : '';
 
-                
+                // 先筛选
                 const filtered = BOOKS.filter(book => {
                     let platformMatch = true;
                     if (filter.platform.size > 0 && !filter.platform.has(book.platform)) platformMatch = false;
@@ -1132,29 +1232,60 @@
                         chaptersMatch && titleMatch && authorMatch;
                 });
 
-                filterIndicator.textContent = `(${filtered.length})`;
-
-                // 同步更新 filterToggleBtn 中的显示
+                // 更新总数显示
+                const totalCount = filtered.length;
+                filterIndicator.textContent = `(${totalCount})`;
                 const btnIndicator = filterToggleBtn.querySelector('#filterIndicator');
                 if (btnIndicator) {
-                    btnIndicator.textContent = `(${filtered.length})`;
+                    btnIndicator.textContent = `(${totalCount})`;
                 }
 
-                if (filtered.length === 0) {
+                // 计算分页
+                const totalPages = Math.ceil(totalCount / pageSize) || 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = Math.min(startIndex + pageSize, totalCount);
+                const pageData = filtered.slice(startIndex, endIndex);
+
+                // 渲染表格
+                if (pageData.length === 0) {
                     tableBody.innerHTML =
                         `<tr><td colspan="${COLUMNS.length + (isAdmin ? 1 : 0)}" class="empty-message">📭 没有找到符合条件的文章</td></tr>`;
+                    // 移除分页控件
+                    removePagination();
                     return;
                 }
 
                 let bodyHtml = '';
-                filtered.forEach(book => {
-                    bodyHtml += '<tr>';
+                pageData.forEach((book, index) => {
+                    // 计算全局序号（用于显示）
+                    const globalIndex = startIndex + index;
+                    // 判断行颜色：每5行交替，浅红和浅蓝
+                    const rowColorIndex = Math.floor(globalIndex / 5) % 2;
+                    const bgColor = rowColorIndex === 0 ? '#fff5f5' : '#f0f4ff';
+                    
+                    bodyHtml += `<tr style="background-color:${bgColor}; transition:background 0.15s;">`;
+                    
+                    // 操作列（第一列）
+                    if (isAdmin) {
+                        bodyHtml += `<td>
+                            <div style="display:flex; gap:0.3rem; align-items:center;">
+                                <button class="btn-sm edit" data-id="${book.id}" title="编辑">✎</button>
+                                <button class="btn-sm danger" data-id="${book.id}" title="删除">✕</button>
+                                <span class="drag-handle" draggable="true" title="按住拖动调整顺序" style="cursor:grab; color:#94a3b8; font-size:1.2rem; user-select:none; padding:0 0.2rem; line-height:1;">⠿</span>
+                            </div>
+                        </td>`;
+                    }
+                    
+                    // 数据列
                     COLUMNS.forEach(col => {
                         let value = book[col.key];
-                        if (col.key === 'tags') {
+                        if (col.key === 'index') {
+                            value = `<span class="index-cell" data-index="${globalIndex}" data-bookid="${book.id}" style="cursor:pointer; font-weight:600; color:#64748b; padding:0.2rem 0.4rem; border-radius:4px; display:inline-block; transition:background 0.2s; min-width:30px; text-align:center;">${globalIndex + 1}</span>`;
+                        } else if (col.key === 'tags') {
                             const tags = Array.isArray(value) ? value : [value];
-                            value = tags.filter(t => t).map(t =>{
-                                const { hue, sat, lig } = getTagColor(t);  
+                            value = tags.filter(t => t).map(t => {
+                                const { hue, sat, lig } = getTagColor(t);
                                 const color = `hsl(${hue}, ${sat}%, ${lig}%)`;
                                 const textColor = lig > 60 ? '#1e293b' : '#ffffff';
                                 return `<span class="tag-badge" style="background:${color}; color:${textColor};">${t}</span>`;
@@ -1173,18 +1304,209 @@
                         } else {
                             value = value ?? '-';
                         }
-                        bodyHtml += `<td>${value}</td>`;
+                        bodyHtml += `<td style="width:${col.width}; min-width:${col.width}; max-width:${col.width}; word-break:break-word; box-sizing:border-box;">${value}</td>`;
                     });
-                    if (isAdmin) {
-                        bodyHtml += `<td><div class="admin-actions-cell">
-                                <button class="btn-sm edit" data-id="${book.id}">✎</button>
-                                <button class="btn-sm danger" data-id="${book.id}">✕</button>
-                            </div></td>`;
-                    }
+                    
                     bodyHtml += '</tr>';
                 });
                 tableBody.innerHTML = bodyHtml;
 
+                // ===== 渲染分页控件 =====
+                renderPagination(totalCount, totalPages, currentPage);
+
+                // ===== 拖拽排序 =====
+                if (isAdmin) {
+                    const rows = tableBody.querySelectorAll('tr');
+                    let dragIndex = null;
+
+                    rows.forEach(row => {
+                        const handle = row.querySelector('.drag-handle');
+                        if (!handle) return;
+
+                        handle.addEventListener('dragstart', function(e) {
+                            // 计算在完整 BOOKS 中的索引
+                            const rowIndex = Array.from(rows).indexOf(row);
+                            const bookId = parseInt(row.querySelector('.edit')?.dataset.id);
+                            dragIndex = BOOKS.findIndex(b => b.id === bookId);
+                            if (dragIndex === -1) return;
+                            
+                            row.classList.add('dragging');
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', dragIndex);
+                            
+                            // 创建整行拖拽图像
+                            const rect = row.getBoundingClientRect();
+                            const clone = row.cloneNode(true);
+                            clone.style.position = 'fixed';
+                            clone.style.top = '-9999px';
+                            clone.style.left = '-9999px';
+                            clone.style.width = rect.width + 'px';
+                            clone.style.background = 'white';
+                            clone.style.boxShadow = '0 8px 30px rgba(0,0,0,0.2)';
+                            clone.style.borderRadius = '8px';
+                            clone.style.border = '2px solid #1f4b6e';
+                            clone.style.zIndex = '9999';
+                            clone.style.pointerEvents = 'none';
+                            document.body.appendChild(clone);
+                            e.dataTransfer.setDragImage(clone, 20, 20);
+                            setTimeout(() => {
+                                if (clone.parentNode) clone.parentNode.removeChild(clone);
+                            }, 0);
+                        });
+
+                        handle.addEventListener('dragend', function(e) {
+                            row.classList.remove('dragging');
+                            rows.forEach(r => r.classList.remove('drag-over'));
+                            rows.forEach(r => r.style.opacity = '');
+                        });
+
+                        row.addEventListener('dragover', function(e) {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                            if (dragIndex !== null) {
+                                rows.forEach(r => r.classList.remove('drag-over'));
+                                this.classList.add('drag-over');
+                                rows.forEach((r, idx) => {
+                                    if (idx !== Array.from(rows).indexOf(row)) r.style.opacity = '1';
+                                });
+                                // 找到被拖拽的行并半透明
+                                const draggedRow = rows[Array.from(rows).indexOf(row)];
+                                if (draggedRow) draggedRow.style.opacity = '0.4';
+                            }
+                        });
+
+                        row.addEventListener('dragleave', function(e) {
+                            this.classList.remove('drag-over');
+                        });
+
+                        row.addEventListener('drop', function(e) {
+                            e.preventDefault();
+                            this.classList.remove('drag-over');
+                            rows.forEach(r => r.style.opacity = '');
+                            
+                            if (dragIndex === null) return;
+                            
+                            // 获取目标行对应的 book id
+                            const targetRow = this;
+                            const targetBookId = parseInt(targetRow.querySelector('.edit')?.dataset.id);
+                            if (!targetBookId) return;
+                            
+                            const targetIndex = BOOKS.findIndex(b => b.id === targetBookId);
+                            if (targetIndex === -1 || dragIndex === targetIndex) return;
+                            
+                            const [movedBook] = BOOKS.splice(dragIndex, 1);
+                            BOOKS.splice(targetIndex, 0, movedBook);
+                            
+                            // 重置到第一页，显示最新顺序
+                            currentPage = 1;
+                            renderBooks(currentFilter);
+                            showToast('顺序已调整', 'success');
+                            saveBooksToDB();
+                        });
+                    });
+                }
+
+                // ===== 双击序号原地修改 =====
+                if (isAdmin) {
+                    const indexCells = tableBody.querySelectorAll('.index-cell');
+                    indexCells.forEach(cell => {
+                        cell.addEventListener('dblclick', function(e) {
+                            e.stopPropagation();
+                            
+                            if (this.querySelector('input')) return;
+                            
+                            const currentGlobalIndex = parseInt(this.dataset.index);
+                            const bookId = parseInt(this.dataset.bookid);
+                            const total = BOOKS.length;
+                            const currentValue = currentGlobalIndex + 1;
+                            const originalText = this.textContent;
+                            
+                            const input = document.createElement('input');
+                            input.type = 'number';
+                            input.min = 1;
+                            input.max = total;
+                            input.value = currentValue;
+                            input.className = 'index-input';
+                            input.style.width = '40px';
+                            input.style.padding = '0.1rem 0.2rem';
+                            input.style.border = '2px solid #1f4b6e';
+                            input.style.borderRadius = '6px';
+                            input.style.fontSize = '0.85rem';
+                            input.style.fontWeight = '600';
+                            input.style.textAlign = 'center';
+                            input.style.background = 'white';
+                            input.style.color = '#1e293b';
+                            input.style.outline = 'none';
+                            input.style.boxShadow = '0 0 0 3px rgba(31, 75, 110, 0.15)';
+                            
+                            this.textContent = '';
+                            this.appendChild(input);
+                            input.focus();
+                            input.select();
+                            
+                            const cellRef = this;
+                            
+                            function finishEdit(save = true) {
+                                if (!save) {
+                                    cellRef.textContent = originalText;
+                                    return;
+                                }
+                                
+                                const newValue = parseInt(input.value);
+                                if (isNaN(newValue) || newValue < 1 || newValue > total) {
+                                    showToast('❌ 请输入有效序号（1-' + total + '）', 'error');
+                                    cellRef.textContent = originalText;
+                                    return;
+                                }
+                                
+                                const targetIndex = newValue - 1;
+                                const currentBookIndex = BOOKS.findIndex(b => b.id === bookId);
+                                if (currentBookIndex === -1) {
+                                    cellRef.textContent = originalText;
+                                    return;
+                                }
+                                
+                                if (currentBookIndex === targetIndex) {
+                                    cellRef.textContent = originalText;
+                                    return;
+                                }
+                                
+                                const [movedBook] = BOOKS.splice(currentBookIndex, 1);
+                                BOOKS.splice(targetIndex, 0, movedBook);
+                                
+                                // 重置到第一页
+                                currentPage = 1;
+                                renderBooks(currentFilter);
+                                showToast('✅ 序号已更新', 'success');
+                                saveBooksToDB();
+                            }
+                            
+                            input.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    finishEdit(true);
+                                } else if (e.key === 'Escape') {
+                                    e.preventDefault();
+                                    finishEdit(false);
+                                }
+                            });
+                            
+                            input.addEventListener('blur', function() {
+                                setTimeout(() => {
+                                    if (cellRef.querySelector('input')) {
+                                        finishEdit(true);
+                                    }
+                                }, 150);
+                            });
+                            
+                            input.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                            });
+                        });
+                    });
+                }
+
+                // ===== 编辑和删除按钮事件 =====
                 if (isAdmin) {
                     document.querySelectorAll('#tableBody .btn-sm.edit').forEach(btn => {
                         btn.addEventListener('click', () => {
@@ -1201,6 +1523,96 @@
                         });
                     });
                 }
+            }
+
+            // ===== 分页控件 =====
+            function renderPagination(total, totalPages, current) {
+                // 移除旧的分页控件
+                removePagination();
+                
+                if (totalPages <= 1) return;
+                
+                const container = document.querySelector('.table-container');
+                const paginationDiv = document.createElement('div');
+                paginationDiv.id = 'paginationControls';
+                paginationDiv.style.cssText = 'display:flex; justify-content:center; align-items:center; gap:0.5rem; padding:0.8rem 1rem; background:#f8fafc; border-top:1px solid #e9edf2; flex-wrap:wrap;';
+                
+                // 上一页
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = '◀ 上一页';
+                prevBtn.className = 'btn btn-secondary';
+                prevBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                prevBtn.disabled = current <= 1;
+                prevBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderBooks(currentFilter);
+                    }
+                });
+                paginationDiv.appendChild(prevBtn);
+                
+                // 页码信息
+                const infoSpan = document.createElement('span');
+                infoSpan.textContent = `第 ${current} / ${totalPages} 页（共 ${total} 条）`;
+                infoSpan.style.cssText = 'font-size:0.85rem; color:#475569; margin:0 0.5rem;';
+                paginationDiv.appendChild(infoSpan);
+                
+                // 跳转输入
+                const jumpWrapper = document.createElement('span');
+                jumpWrapper.style.cssText = 'display:flex; align-items:center; gap:0.3rem;';
+                
+                const jumpInput = document.createElement('input');
+                jumpInput.type = 'number';
+                jumpInput.min = 1;
+                jumpInput.max = totalPages;
+                jumpInput.value = current;
+                jumpInput.style.cssText = 'width:50px; padding:0.15rem 0.3rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.8rem; text-align:center; background:white; outline:none;';
+                jumpInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        const val = parseInt(this.value);
+                        if (val >= 1 && val <= totalPages) {
+                            currentPage = val;
+                            renderBooks(currentFilter);
+                        } else {
+                            showToast('请输入 1-' + totalPages + ' 之间的页码', 'error');
+                            this.value = current;
+                        }
+                    }
+                });
+                jumpInput.addEventListener('blur', function() {
+                    const val = parseInt(this.value);
+                    if (isNaN(val) || val < 1 || val > totalPages) {
+                        this.value = current;
+                    }
+                });
+                jumpWrapper.appendChild(jumpInput);
+                
+                const jumpLabel = document.createElement('span');
+                jumpLabel.textContent = '页';
+                jumpLabel.style.cssText = 'font-size:0.8rem; color:#64748b;';
+                jumpWrapper.appendChild(jumpLabel);
+                paginationDiv.appendChild(jumpWrapper);
+                
+                // 下一页
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = '下一页 ▶';
+                nextBtn.className = 'btn btn-secondary';
+                nextBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                nextBtn.disabled = current >= totalPages;
+                nextBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderBooks(currentFilter);
+                    }
+                });
+                paginationDiv.appendChild(nextBtn);
+                
+                container.appendChild(paginationDiv);
+            }
+
+            function removePagination() {
+                const existing = document.getElementById('paginationControls');
+                if (existing) existing.remove();
             }
 
             // ================================================================
@@ -1263,12 +1675,14 @@
 
             function applyFilterAndRender() {
                 collectFilterFromPanel();
+                currentPage = 1;  // 新增：筛选后回到第一页
                 renderBooks(currentFilter);
             }
 
             function resetFilter() {
                 document.querySelectorAll('#filterGrid input[type="checkbox"]').forEach(cb => { cb.checked = false; });
                 FILTER_FIELDS.forEach(field => { currentFilter[field] = new Set(); });
+                currentPage = 1;  // 新增：重置到第一页
                 renderBooks(currentFilter);
                 filterIndicator.textContent = `(${BOOKS.length})`;
                 const btnIndicator = filterToggleBtn.querySelector('#filterIndicator');
@@ -1281,42 +1695,165 @@
             //  10. 添加行渲染
             // ================================================================
 
-            function renderAddRowSelectors() {
-                const platSel = $('newPlatform');
-                platSel.innerHTML = '<option value="">平台*</option>';
+            function renderAddForm() {
+                const container = document.getElementById('addFormContainer');
+                
+                let html = `
+                    <div class="modal-field">
+                        <label>文名 *</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="text" id="addTitle" placeholder="请输入文名" style="flex:1;" />
+                            <span id="addDuplicateWarning" style="display:none; color:#b91c1c; font-size:0.75rem; white-space:nowrap;">⚠️ 已存在</span>
+                            <span id="addTitleAvailable" style="display:none; color:#065f46; font-size:0.75rem; white-space:nowrap;">✅ 可用</span>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>作者 *</label>
+                        <input type="text" id="addAuthor" placeholder="请输入作者" />
+                    </div>
+                    <div class="modal-field">
+                        <label>平台 *</label>
+                        <select id="addPlatform"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>更新状态 *</label>
+                        <select id="addStatus"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>结局 *</label>
+                        <select id="addEnding"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>属性 *</label>
+                        <select id="addAttributes"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>🚗 *</label>
+                        <select id="addCar"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>章节 *</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                            <select id="addChaptersType" style="flex:0 0 auto; min-width:100px;">
+                                <option value="">请选择</option>
+                                <option value="一发完">一发完</option>
+                                <option value="多篇章">多篇章</option>
+                            </select>
+                            <span id="addChaptersNumberWrapper" style="display:none; align-items:center; gap:0.3rem;">
+                                <input type="number" id="addChaptersNumber" placeholder="章节数" min="1" max="999" style="width:80px; padding:0.3rem 0.5rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white;" />
+                                <span style="font-size:0.9rem; color:#475569;">章</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>链接</label>
+                        <input type="text" id="addLink" placeholder="请输入链接（可选）" />
+                    </div>
+                    <div class="modal-field">
+                        <label>Tag（多选）</label>
+                        <div class="tag-select-container" id="addTagsContainer"></div>
+                    </div>
+                `;
+                container.innerHTML = html;
+
+                // 填充下拉选项
+                const platSel = document.getElementById('addPlatform');
+                platSel.innerHTML = '<option value="">请选择</option>';
                 OPTIONS.platform.forEach(s => { platSel.innerHTML += `<option value="${s}">${s}</option>`; });
 
-                const statusSel = $('newStatus');
-                statusSel.innerHTML = '<option value="">状态*</option>';
+                const statusSel = document.getElementById('addStatus');
+                statusSel.innerHTML = '<option value="">请选择</option>';
                 OPTIONS.status.forEach(s => { statusSel.innerHTML += `<option value="${s}">${s}</option>`; });
 
-                const endSel = $('newEnding');
-                endSel.innerHTML = '<option value="">结局*</option>';
+                const endSel = document.getElementById('addEnding');
+                endSel.innerHTML = '<option value="">请选择</option>';
                 OPTIONS.ending.forEach(e => { endSel.innerHTML += `<option value="${e}">${e}</option>`; });
 
-                const attrSel = $('newAttributes');
-                attrSel.innerHTML = '<option value="">属性*</option>';
+                const attrSel = document.getElementById('addAttributes');
+                attrSel.innerHTML = '<option value="">请选择</option>';
                 OPTIONS.attributes.forEach(a => { attrSel.innerHTML += `<option value="${a}">${a}</option>`; });
 
-                const carSel = $('newCar');
-                carSel.innerHTML = '<option value="">🚗*</option>';
+                const carSel = document.getElementById('addCar');
+                carSel.innerHTML = '<option value="">请选择</option>';
                 OPTIONS.car.forEach(c => { carSel.innerHTML += `<option value="${c}">${c}</option>`; });
 
-                const chapSel = $('newChapters');
-                chapSel.innerHTML = '<option value="">章节*</option>';
-                OPTIONS.chapters.forEach(c => { chapSel.innerHTML += `<option value="${c}">${c}</option>`; });
-
-                const container = $('newTagsContainer');
-                container.innerHTML = '';
+                // 填充 Tag 多选
+                const tagContainer = document.getElementById('addTagsContainer');
+                tagContainer.innerHTML = '';
                 OPTIONS.tags.forEach(tag => {
                     const label = document.createElement('label');
                     label.innerHTML = `<input type="checkbox" value="${tag}"> ${tag}`;
-                    container.appendChild(label);
+                    tagContainer.appendChild(label);
                 });
+
+                // ===== 章节类型切换 =====
+                const chaptersType = document.getElementById('addChaptersType');
+                const chaptersNumberWrapper = document.getElementById('addChaptersNumberWrapper');
+                const chaptersNumber = document.getElementById('addChaptersNumber');
+
+                chaptersType.addEventListener('change', function() {
+                    if (this.value === '多篇章') {
+                        chaptersNumberWrapper.style.display = 'flex';
+                        chaptersNumber.focus();
+                    } else {
+                        chaptersNumberWrapper.style.display = 'none';
+                        chaptersNumber.value = '';
+                    }
+                });
+
+                // ===== 绑定实时检测 =====
+                const titleInput = document.getElementById('addTitle');
+                const dupWarning = document.getElementById('addDuplicateWarning');
+                const titleAvailable = document.getElementById('addTitleAvailable');
+                const saveBtn = document.getElementById('addModalSaveBtn');
+
+                if (saveBtn) saveBtn.disabled = false;
+
+                if (titleInput) {
+                    titleInput.addEventListener('input', function() {
+                        const title = this.value.trim();
+                        
+                        if (title === '') {
+                            dupWarning.style.display = 'none';
+                            titleAvailable.style.display = 'none';
+                            this.style.borderColor = '#d0d9e6';
+                            this.style.boxShadow = 'none';
+                            if (saveBtn) saveBtn.disabled = false;
+                            return;
+                        }
+                        
+                        const isDuplicate = BOOKS.some(book => 
+                            book.title.trim().toLowerCase() === title.toLowerCase()
+                        );
+                        
+                        if (isDuplicate) {
+                            dupWarning.style.display = 'inline';
+                            titleAvailable.style.display = 'none';
+                            this.style.borderColor = '#b91c1c';
+                            this.style.boxShadow = '0 0 0 3px rgba(185, 28, 28, 0.15)';
+                            if (saveBtn) saveBtn.disabled = true;
+                        } else {
+                            dupWarning.style.display = 'none';
+                            titleAvailable.style.display = 'inline';
+                            this.style.borderColor = '#065f46';
+                            this.style.boxShadow = '0 0 0 3px rgba(6, 95, 70, 0.15)';
+                            if (saveBtn) saveBtn.disabled = false;
+                        }
+                    });
+                }
+            }
+
+            function openAddModal() {
+                renderAddForm();
+                document.getElementById('addModal').classList.add('active');
+            }
+
+            function closeAddModal() {
+                document.getElementById('addModal').classList.remove('active');
             }
 
             // ================================================================
-            //  11. 增删改操作
+            //  12. 增删改操作
             // ================================================================
 
             async function deleteBook(id) {
@@ -1324,6 +1861,7 @@
                 if (success) {
                     BOOKS = BOOKS.filter(b => b.id !== id);
                     renderFilterPanel();
+                    currentPage = 1;  // 新增：删除后回到第一页
                     renderBooks(currentFilter);
                     showToast('删除成功', 'success');
                 }
@@ -1335,48 +1873,84 @@
                 editingBookId = id;
                 const container = editFormContainer;
 
+                // 解析章节值：判断是"一发完"还是"X章"
+                let chaptersType = '一发完';
+                let chaptersNumber = '';
+                if (book.chapters && book.chapters !== '一发完' && book.chapters !== '') {
+                    // 尝试提取数字
+                    const match = book.chapters.match(/^(\d+)章$/);
+                    if (match) {
+                        chaptersType = '多篇章';
+                        chaptersNumber = match[1];
+                    } else {
+                        chaptersType = book.chapters;
+                    }
+                }
+
                 let html = `
-                        <div class="modal-field"><label>文名</label><input type="text" id="editTitle" value="${book.title || ''}"></div>
-                        <div class="modal-field"><label>作者</label><input type="text" id="editAuthor" value="${book.author || ''}"></div>
-                        <div class="modal-field"><label>平台</label><select id="editPlatform">`;
+                    <div class="modal-field"><label>文名</label><input type="text" id="editTitle" value="${book.title || ''}"></div>
+                    <div class="modal-field"><label>作者</label><input type="text" id="editAuthor" value="${book.author || ''}"></div>
+                    <div class="modal-field"><label>平台</label><select id="editPlatform">`;
                 OPTIONS.platform.forEach(p => {
                     html += `<option value="${p}" ${p === book.platform ? 'selected' : ''}>${p}</option>`;
                 });
                 html += `</select></div>
-                        <div class="modal-field"><label>Tag (多选)</label><div class="tag-select-container" id="editTagsContainer">`;
+                    <div class="modal-field"><label>Tag (多选)</label><div class="tag-select-container" id="editTagsContainer">`;
                 OPTIONS.tags.forEach(tag => {
                     const checked = (book.tags || []).includes(tag) ? 'checked' : '';
                     html += `<label><input type="checkbox" value="${tag}" ${checked}> ${tag}</label>`;
                 });
                 html += `</div></div>
-                        <div class="modal-field"><label>更新状态</label><select id="editStatus">`;
+                    <div class="modal-field"><label>更新状态</label><select id="editStatus">`;
                 OPTIONS.status.forEach(s => {
                     html += `<option value="${s}" ${s === book.status ? 'selected' : ''}>${s}</option>`;
                 });
                 html += `</select></div>
-                        <div class="modal-field"><label>结局</label><select id="editEnding">`;
+                    <div class="modal-field"><label>结局</label><select id="editEnding">`;
                 OPTIONS.ending.forEach(e => {
                     html += `<option value="${e}" ${e === book.ending ? 'selected' : ''}>${e}</option>`;
                 });
                 html += `</select></div>
-                        <div class="modal-field"><label>属性</label><select id="editAttributes">`;
+                    <div class="modal-field"><label>属性</label><select id="editAttributes">`;
                 OPTIONS.attributes.forEach(a => {
                     html += `<option value="${a}" ${a === book.attributes ? 'selected' : ''}>${a}</option>`;
                 });
                 html += `</select></div>
-                        <div class="modal-field"><label>🚗</label><select id="editCar">`;
+                    <div class="modal-field"><label>🚗</label><select id="editCar">`;
                 OPTIONS.car.forEach(c => {
                     html += `<option value="${c}" ${c === book.car ? 'selected' : ''}>${c}</option>`;
                 });
                 html += `</select></div>
-                        <div class="modal-field"><label>章节</label><select id="editChapters">`;
-                OPTIONS.chapters.forEach(c => {
-                    html += `<option value="${c}" ${c === book.chapters ? 'selected' : ''}>${c}</option>`;
-                });
-                html += `</select></div>
-                        <div class="modal-field"><label>链接</label><input type="text" id="editLink" value="${book.link || ''}"></div>
-                    `;
+                    <div class="modal-field"><label>章节</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                            <select id="editChaptersType" style="flex:0 0 auto; min-width:100px;">
+                                <option value="一发完" ${chaptersType === '一发完' ? 'selected' : ''}>一发完</option>
+                                <option value="多篇章" ${chaptersType === '多篇章' ? 'selected' : ''}>多篇章</option>
+                            </select>
+                            <span id="editChaptersNumberWrapper" style="display:${chaptersType === '多篇章' ? 'flex' : 'none'}; align-items:center; gap:0.3rem;">
+                                <input type="number" id="editChaptersNumber" placeholder="章节数" min="1" max="999" value="${chaptersNumber}" style="width:80px; padding:0.3rem 0.5rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white;" />
+                                <span style="font-size:0.9rem; color:#475569;">章</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="modal-field"><label>链接</label><input type="text" id="editLink" value="${book.link || ''}"></div>
+                `;
                 container.innerHTML = html;
+
+                // 章节类型切换
+                const editChaptersType = document.getElementById('editChaptersType');
+                const editChaptersNumberWrapper = document.getElementById('editChaptersNumberWrapper');
+
+                editChaptersType.addEventListener('change', function() {
+                    if (this.value === '多篇章') {
+                        editChaptersNumberWrapper.style.display = 'flex';
+                        document.getElementById('editChaptersNumber').focus();
+                    } else {
+                        editChaptersNumberWrapper.style.display = 'none';
+                        document.getElementById('editChaptersNumber').value = '';
+                    }
+                });
+
                 editModal.classList.add('active');
             }
 
@@ -1385,6 +1959,17 @@
                 if (id === null) return;
                 const book = BOOKS.find(b => b.id === id);
                 if (!book) return;
+
+                const chaptersType = document.getElementById('editChaptersType').value;
+                let chapters = chaptersType;
+                if (chaptersType === '多篇章') {
+                    const chaptersNumber = document.getElementById('editChaptersNumber').value.trim();
+                    if (!chaptersNumber || parseInt(chaptersNumber) < 1) {
+                        showToast('请输入有效的章节数', 'error');
+                        return;
+                    }
+                    chapters = chaptersNumber + '章';
+                }
 
                 book.title = document.getElementById('editTitle').value.trim() || book.title;
                 book.author = document.getElementById('editAuthor').value.trim() || book.author;
@@ -1395,7 +1980,7 @@
                 book.ending = document.getElementById('editEnding').value;
                 book.attributes = document.getElementById('editAttributes').value;
                 book.car = document.getElementById('editCar').value;
-                book.chapters = document.getElementById('editChapters').value;
+                book.chapters = chapters;
                 book.link = document.getElementById('editLink').value.trim() || '#';
 
                 const success = await saveBooksToDB();
@@ -1413,32 +1998,43 @@
             }
 
             // ================================================================
-            //  12. 添加图书
+            //  13. 添加图书
             // ================================================================
 
-            async function addBookFromForm() {
-                const title = document.getElementById('newTitle').value.trim();
-                const author = document.getElementById('newAuthor').value.trim();
-                const platform = document.getElementById('newPlatform').value;
-                const status = document.getElementById('newStatus').value;
-                const ending = document.getElementById('newEnding').value;
-                const attributes = document.getElementById('newAttributes').value;
-                const car = document.getElementById('newCar').value;
-                const chapters = document.getElementById('newChapters').value;
-                const link = document.getElementById('newLink').value.trim() || '#';
-                const tagChecks = document.querySelectorAll('#newTagsContainer input[type="checkbox"]:checked');
+            async function addBookFromModal() {
+                const title = document.getElementById('addTitle').value.trim();
+                const author = document.getElementById('addAuthor').value.trim();
+                const platform = document.getElementById('addPlatform').value;
+                const status = document.getElementById('addStatus').value;
+                const ending = document.getElementById('addEnding').value;
+                const attributes = document.getElementById('addAttributes').value;
+                const car = document.getElementById('addCar').value;
+                const chaptersType = document.getElementById('addChaptersType').value;
+                const chaptersNumber = document.getElementById('addChaptersNumber').value.trim();
+                const link = document.getElementById('addLink').value.trim() || '#';
+                const tagChecks = document.querySelectorAll('#addTagsContainer input[type="checkbox"]:checked');
                 const tags = Array.from(tagChecks).map(cb => cb.value);
 
-                if (!title || !author || !platform || !status || !ending || !attributes || !car || !chapters) {
+                // 必填项检查
+                if (!title || !author || !platform || !status || !ending || !attributes || !car || !chaptersType) {
                     showToast('请完整填写所有必填项', 'error');
                     return;
                 }
 
-                // 检查数据库中是否已存在同名文章（忽略大小写，去除首尾空格）
+                // 章节值组合
+                let chapters = chaptersType;
+                if (chaptersType === '多篇章') {
+                    if (!chaptersNumber || parseInt(chaptersNumber) < 1) {
+                        showToast('请输入有效的章节数', 'error');
+                        return;
+                    }
+                    chapters = chaptersNumber + '章';
+                }
+
+                // 二次保障：检查是否重复
                 const duplicate = BOOKS.some(book => 
                     book.title.trim().toLowerCase() === title.toLowerCase()
                 );
-
                 if (duplicate) {
                     showToast('⚠️ 文章 "' + title + '" 已存在，请勿重复添加！', 'error');
                     return;
@@ -1468,24 +2064,15 @@
                 }
 
                 BOOKS.push(newBook);
-                document.getElementById('newTitle').value = '';
-                document.getElementById('newAuthor').value = '';
-                document.getElementById('newPlatform').value = '';
-                document.getElementById('newStatus').value = '';
-                document.getElementById('newEnding').value = '';
-                document.getElementById('newAttributes').value = '';
-                document.getElementById('newCar').value = '';
-                document.getElementById('newChapters').value = '';
-                document.getElementById('newLink').value = '';
-                document.querySelectorAll('#newTagsContainer input[type="checkbox"]').forEach(cb => cb.checked = false);
-
+                closeAddModal();
                 renderFilterPanel();
+                currentPage = 1;  // 新增：添加后回到第一页
                 renderBooks(currentFilter);
                 showToast('添加成功', 'success');
             }
 
             // ================================================================
-            //  13. 管理选项
+            //  14. 管理选项
             // ================================================================
 
             function renderOptionsManager() {
@@ -1526,7 +2113,7 @@
                         if (OPTIONS[group]) {
                             OPTIONS[group] = OPTIONS[group].filter(v => v !== value);
                             renderOptionsManager();
-                            renderAddRowSelectors();
+                            //renderAddRowSelectors();
                             renderFilterPanel();
                             renderBooks(currentFilter);
                         }
@@ -1541,7 +2128,7 @@
                         if (val && OPTIONS[group] && !OPTIONS[group].includes(val)) {
                             OPTIONS[group].push(val);
                             renderOptionsManager();
-                            renderAddRowSelectors();
+                            //renderAddRowSelectors();
                             renderFilterPanel();
                             renderBooks(currentFilter);
                         } else if (!val) {
@@ -1571,7 +2158,7 @@
             }
 
             // ================================================================
-            //  14. 描述保存
+            //  15. 描述保存
             // ================================================================
 
             async function saveDescription() {
@@ -1581,21 +2168,17 @@
             }
 
             // ================================================================
-            //  15. UI 切换
+            //  16. UI 切换
             // ================================================================
 
-            function toggleAddRow() {
-                addRowVisible = !addRowVisible;
-                addRowArea.style.display = addRowVisible ? 'block' : 'none';
-                if (addRowVisible) renderAddRowSelectors();
-            }
+            
 
             function toggleFilterPanel() {
                 filterPanel.classList.toggle('open');
             }
 
             // ================================================================
-            //  16. 初始化
+            //  17. 初始化
             // ================================================================
 
             async function init() {
@@ -1625,8 +2208,7 @@
                 resetBtn.addEventListener('click', resetFilter);
                 filterToggleBtn.addEventListener('click', toggleFilterPanel);
 
-                toggleAddRowBtn.addEventListener('click', toggleAddRow);
-                addBookBtn.addEventListener('click', addBookFromForm);
+                toggleAddRowBtn.addEventListener('click', openAddModal);
 
                 descriptionText.addEventListener('blur', saveDescription);
                 descriptionText.addEventListener('input', function() {
@@ -1647,6 +2229,16 @@
                     if (e.target === optionsModal) closeOptionsModal();
                 });
 
+                // ========== 新增条目模态框事件 ==========
+                document.getElementById('addModalCancelBtn').addEventListener('click', closeAddModal);
+                document.getElementById('addModalSaveBtn').addEventListener('click', addBookFromModal);
+
+                // 点击背景关闭
+                document.getElementById('addModal').addEventListener('click', function(e) {
+                    if (e.target === this) closeAddModal();
+                });
+
+                //搜索框事件
                 const searchTitle = document.getElementById('searchTitle');
                 const searchAuthor = document.getElementById('searchAuthor');
                 const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -1678,6 +2270,7 @@
                     });
                 }
 
+                
                 filterPanel.classList.remove('open');
                 filterToggleBtn.innerHTML = '<span>⚙️</span> 筛选 <span id="filterIndicator">(' + BOOKS.length +
                     ')</span>';
@@ -1701,9 +2294,12 @@
             } else {
                 document.addEventListener('DOMContentLoaded', init);
             }
-
+resetFilter
+            
         })();
     </script>
 
 </body>
 </html>
+
+
