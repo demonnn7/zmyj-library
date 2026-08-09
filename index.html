@@ -1087,8 +1087,8 @@
                 }
                 // 使用哈希值生成 HSL 颜色
                 const hue = Math.abs(hash) % 360;
-                const sat = 65 + (Math.abs(hash >> 8) % 25); // 65-90%
-                const lig = 50 + (Math.abs(hash >> 16) % 25); // 50-75%
+                const sat = 15 + (Math.abs(hash >> 8) % 15); // 15-30%
+                const lig = 85 + (Math.abs(hash >> 16) % 10); // 84-95%
                 return { hue, sat, lig };
             }
 
