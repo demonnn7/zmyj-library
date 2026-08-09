@@ -1078,6 +1078,20 @@
                 tableHead.innerHTML = html;
             }
 
+            // ========== 基于字符串生成稳定颜色的函数 ==========
+            function getTagColor(tag) {
+                // 基于字符串生成哈希值
+                let hash = 0;
+                for (let i = 0; i < tag.length; i++) {
+                    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                // 使用哈希值生成 HSL 颜色
+                const hue = Math.abs(hash) % 360;
+                const sat = 65 + (Math.abs(hash >> 8) % 25); // 65-90%
+                const lig = 50 + (Math.abs(hash >> 16) % 25); // 50-75%
+                return { hue, sat, lig };
+            }
+
             function renderBooks(filter) {
                 filter = filter || currentFilter;
 
@@ -1139,8 +1153,12 @@
                         let value = book[col.key];
                         if (col.key === 'tags') {
                             const tags = Array.isArray(value) ? value : [value];
-                            value = tags.filter(t => t).map(t =>
-                                `<span class="tag-badge">${t}</span>`).join(' ');
+                            value = tags.filter(t => t).map(t =>{
+                                const { hue, sat, lig } = getTagColor(t);  
+                                const color = `hsl(${hue}, ${sat}%, ${lig}%)`;
+                                const textColor = lig > 60 ? '#1e293b' : '#ffffff';
+                                return `<span class="tag-badge" style="background:${color}; color:${textColor};">${t}</span>`;
+                            }).join(' ');
                         } else if (col.key === 'status') {
                             let cls = 'status-completed';
                             if (value === '连载中' || value === '未完结') cls = 'status-serializing';
@@ -1413,6 +1431,16 @@
 
                 if (!title || !author || !platform || !status || !ending || !attributes || !car || !chapters) {
                     showToast('请完整填写所有必填项', 'error');
+                    return;
+                }
+
+                // 检查数据库中是否已存在同名文章（忽略大小写，去除首尾空格）
+                const duplicate = BOOKS.some(book => 
+                    book.title.trim().toLowerCase() === title.toLowerCase()
+                );
+
+                if (duplicate) {
+                    showToast('⚠️ 文章 "' + title + '" 已存在，请勿重复添加！', 'error');
                     return;
                 }
 
