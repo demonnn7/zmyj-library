@@ -1745,16 +1745,35 @@
                             book.sort_order = idx + 1;
                             // 确保 platform 是数组
                             if (!Array.isArray(book.platform)) {
-                                book.platform = [];
+                                if (typeof book.platform === 'string' && book.platform) {
+                                    book.platform = [book.platform];
+                                } else {
+                                    book.platform = [];
+                                }
                             }
                             if (!Array.isArray(book.tags)) {
-                                book.tags = [];
+                                if (typeof book.tags === 'string' && book.tags) {
+                                    book.tags = [book.tags];
+                                } else {
+                                    book.tags = [];
+                                }
                             }
-                            // 确保 link 是数组
+                            // ===== 修复 link 处理 =====
                             if (!Array.isArray(book.link)) {
-                                book.link = [];
+                                // 如果是字符串格式，转为数组
+                                if (typeof book.link === 'string' && book.link) {
+                                    book.link = [{ platform: '链接', url: book.link }];
+                                } else if (book.link && typeof book.link === 'object' && !Array.isArray(book.link)) {
+                                    // 如果是对象格式（旧数据），转为数组
+                                    book.link = [{
+                                        platform: book.link.platform || '链接',
+                                        url: book.link.url || ''
+                                    }];
+                                } else {
+                                    book.link = [];
+                                }
                             }
-                            // 如果 link 是数组但元素是对象格式，确保正确
+                            // 如果 link 是数组但元素是字符串，转为对象格式
                             if (Array.isArray(book.link) && book.link.length > 0) {
                                 book.link = book.link.map(item => {
                                     if (typeof item === 'string') {
@@ -1765,6 +1784,10 @@
                                     }
                                     return item;
                                 });
+                            }
+                            // 过滤掉无效的链接（url 为空或 '#')
+                            if (Array.isArray(book.link)) {
+                                book.link = book.link.filter(l => l && l.url && l.url !== '#');
                             }
                         });
                         const maxId = BOOKS.reduce((max, b) => Math.max(max, b.id), 0);
@@ -2150,22 +2173,15 @@
                             if (Array.isArray(value) && value.length > 0) {
                                 const validLinks = value.filter(l => l && l.url && l.url !== '#');
                                 if (validLinks.length > 0) {
-                                    // ===== 判断是否只有一条链接且平台为"链接"（旧数据） =====
                                     const isSingleLegacyLink = validLinks.length === 1 && validLinks[0].platform === '链接';
                                     
                                     if (isSingleLegacyLink) {
-                                        // 旧数据：显示为 🔗链接
                                         const url = validLinks[0].url;
                                         value = `<a href="${url}" class="link-icon" target="_blank" style="border-bottom:1px dotted #94a3b8; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.1rem; text-decoration:none; color:#1f4b6e;">
                                             <span style="font-size:0.9rem;">🔗</span>链接
                                         </a>`;
                                     } else {
-                                        // 新数据（多平台）：显示为 平台：链接 的标签样式
                                         const linksHtml = validLinks.map(l => {
-                                            let displayUrl = l.url;
-                                            if (displayUrl.length > 25) {
-                                                displayUrl = displayUrl.substring(0, 22) + '...';
-                                            }
                                             return `<span class="tag-badge" style="background:#eef2f6; padding:0.1rem 0.5rem; display:inline-flex; align-items:center; gap:0.2rem; margin:0.1rem 0.1rem;">
                                                 <span style="font-weight:600; color:#1f4b6e; font-size:0.7rem;">${l.platform}:</span>
                                                 <a href="${l.url}" class="link-icon" target="_blank" style="border-bottom:1px dotted #94a3b8; font-size:0.7rem;">链接</a>
