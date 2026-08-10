@@ -1,0 +1,4140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0, user-scalable=yes" />
+    <title>逐梦亚军图书馆</title>
+    <style>
+        /* ===== 全局重置 & 基础 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            padding: 2rem 1.5rem;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== 头部 ===== */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            gap: 1rem 0.5rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .header-left h1 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            letter-spacing: -0.01em;
+            background: linear-gradient(145deg, #0b2b4a, #1f4b6e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-area {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .login-area .user-badge {
+            background: #e9edf2;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .btn {
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            border: 1px solid #d0d9e6;
+            background: white;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.15s;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e3a5f;
+            border: 1px solid #1e3a5f;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #143049;
+            border-color: #143049;
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+        .btn-danger {
+            background: #b91c1c;
+            border: 1px solid #b91c1c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #991b1b;
+        }
+        .btn-sm {
+            padding: 0.1rem 0.5rem;
+            font-size: 0.7rem;
+            border-radius: 30px;
+            border: 1px solid #d0d9e6;
+            background: white;
+            cursor: pointer;
+        }
+        .btn-sm.danger {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+        .btn-sm.read-toggle {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1f4b6e;
+            min-width: 36px;
+            padding: 0.1rem 0.3rem;
+            font-size: 0.75rem;
+        }
+        .btn-sm.read-toggle.unread {
+            background: #f1f5f9;
+            border-color: #d0d9e6;
+            color: #64748b;
+        }
+
+        /* ===== 描述区 ===== */
+        .description-area {
+            background: white;
+            border-radius: 20px;
+            padding: 0.8rem 1.2rem;
+            margin: 0.5rem 0 1.2rem 0;
+            border: 1px solid #e9edf2;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .description-text {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #1e293b;
+            padding: 0.1rem 0;
+            min-height: 2rem;
+            max-height: 120px;
+            overflow-y: auto;
+            outline: none;
+            word-break: break-word;
+            white-space: pre-wrap;
+            scrollbar-width: thin;
+            flex: 1;
+            width: 100%;
+        }
+
+        .description-text.expanded {
+            max-height: 300px;
+        }
+
+        .description-text::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .description-text::-webkit-scrollbar-thumb {
+            background: #d0d9e6;
+            border-radius: 4px;
+        }
+
+        .description-text::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .description-text:empty::before {
+            content: "点击此处编辑说明文字...";
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .description-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 0.1rem;
+            border-top: 1px solid #f1f4f9;
+            flex-shrink: 0;
+        }
+
+        .description-footer .btn-sm {
+            font-size: 0.65rem;
+            padding: 0.05rem 0.5rem;
+            border-radius: 30px;
+            border: 1px solid #d0d9e6;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+
+        .description-footer .btn-sm:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        .description-footer .edit-hint {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            line-height: 1;
+        }
+        /* ===== 用户选项卡 ===== */
+        .tab-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin: 0.5rem 0 1.2rem 0;
+            border-bottom: 2px solid #e9edf2;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.4rem 1.2rem;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #94a3b8;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #1e293b;
+            background: #f1f5f9;
+        }
+
+        .tab-btn.active {
+            color: #1f4b6e;
+            background: #eef2ff;
+        }
+
+        .tab-btn .badge {
+            font-size: 0.7rem;
+            background: #e9edf2;
+            padding: 0.05rem 0.5rem;
+            border-radius: 20px;
+            margin-left: 0.3rem;
+        }
+
+        .tab-btn.active .badge {
+            background: #dbeafe;
+        }
+
+        /* ===== 筛选栏 ===== */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0 1.25rem 0;
+            gap: 0.6rem;
+        }
+        .filter-trigger {
+            background: #ffffff;
+            border: 1px solid #d0d9e6;
+            padding: 0.5rem 1.4rem;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #1e293b;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+        }
+        .filter-trigger:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .admin-tools {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===== 手机端筛选面板优化 ===== */
+        @media (max-width: 768px) {
+            .filter-panel {
+                padding: 1rem 0.8rem !important;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+            
+            .filter-panel .filter-grid > div {
+                flex: 1 1 100% !important;
+                min-width: 100% !important;
+                width: 100% !important;
+            }
+            
+            .filter-panel .filter-options {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.2rem 0.3rem !important;
+                max-height: 120px;
+                overflow-y: auto;
+                padding: 0.2rem 0;
+            }
+            
+            .filter-panel .filter-options label {
+                font-size: 0.7rem !important;
+                padding: 0.05rem 0.4rem 0.05rem 0.3rem !important;
+                white-space: nowrap;
+            }
+            
+            .filter-panel .filter-options input[type="checkbox"] {
+                width: 11px !important;
+                height: 11px !important;
+            }
+            
+            .filter-actions {
+                flex-wrap: wrap;
+                gap: 0.5rem !important;
+            }
+            
+            .filter-actions .btn {
+                font-size: 0.75rem !important;
+                padding: 0.2rem 0.8rem !important;
+            }
+        }
+
+        /* ===== 搜索行 ===== */
+        .search-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+            align-items: center;
+        }
+        .search-row input:focus {
+            border-color: #1f4b6e;
+            box-shadow: 0 0 0 3px rgba(31, 75, 110, 0.1);
+        }
+        .search-row input::placeholder {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        /* ===== 筛选面板 ===== */
+        .filter-panel {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 1.5rem 2rem 2rem 2rem;
+            margin-bottom: 1.8rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e9edf2;
+            display: none;
+        }
+        .filter-panel.open {
+            display: block;
+        }
+        .filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            border-top: 1px solid #e9edf2;
+            padding-top: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===== 表格 ===== */
+        .table-container {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #e9edf2;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            position: relative;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 1000px;
+        }
+        th {
+            text-align: left;
+            padding: 0.9rem 0.8rem;
+            background: #f8fafc;
+            font-weight: 600;
+            color: #334155;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        td {
+            padding: 0.75rem 0.8rem;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: middle;
+            line-height: 1.4;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .tag-badge {
+            display: inline-block;
+            background: #eef2f6;
+            padding: 0.1rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin: 0.1rem 0.15rem;
+            white-space: nowrap;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.1rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-serializing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-hiatus {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .link-icon {
+            color: #1f4b6e;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px dotted #94a3b8;
+        }
+        .link-icon:hover {
+            border-bottom: 1px solid #1f4b6e;
+        }
+        .empty-message {
+            padding: 3rem 1rem;
+            text-align: center;
+            color: #64748b;
+        }
+        .footer-note {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-align: right;
+        }
+
+        /* ===== 拖拽手柄 ===== */
+        .drag-handle {
+            display: inline-block;
+            color: #94a3b8;
+            font-size: 1.2rem;
+            cursor: grab;
+            user-select: none;
+            padding: 0 0.2rem;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .drag-handle:hover {
+            color: #1f4b6e;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* ===== 拖拽排序 ===== */
+        .draggable-row {
+            will-change: transform;
+        }
+        .draggable-row.dragging {
+            opacity: 0.85 !important;
+            z-index: 10;
+            position: relative !important;
+            transition: none !important;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1) !important;
+            background: #ffffff !important;
+            border-radius: 4px;
+        }
+        .draggable-row.drag-over {
+            position: relative;
+        }
+        .drag-indicator-line {
+            height: 3px;
+            background: #1f4b6e;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: -2px;
+            z-index: 50;
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(31, 75, 110, 0.3);
+            pointer-events: none;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .index-cell:hover {
+            background: #eef2f6;
+        }
+        .index-input {
+            width: 40px;
+            padding: 0.1rem 0.2rem;
+            border: 2px solid #1f4b6e;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            background: white;
+            color: #1e293b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(31, 75, 110, 0.15);
+        }
+        .index-input:focus {
+            border-color: #143049;
+            box-shadow: 0 0 0 4px rgba(31, 75, 110, 0.2);
+        }
+
+        /* ===== 模态框 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 32px;
+            padding: 2rem 2.5rem 2.2rem;
+            max-width: 720px;
+            width: 95%;
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-box h2 {
+            margin-bottom: 1.2rem;
+            font-weight: 600;
+            color: #0b2b4a;
+        }
+        .modal-field {
+            margin-bottom: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .modal-field label {
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .modal-field input,
+        .modal-field select {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #d0d9e6;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            background: white;
+        }
+        .modal-field .tag-select-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0.3rem 0;
+        }
+        .modal-field .tag-select-container label {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            background: #f1f4f9;
+            padding: 0.1rem 0.6rem 0.1rem 0.4rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .modal-field .tag-select-container input[type="checkbox"] {
+            accent-color: #1f4b6e;
+            width: 14px;
+            height: 14px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            margin-top: 1.2rem;
+            border-top: 1px solid #e9edf2;
+            padding-top: 1.2rem;
+        }
+        .modal-actions .btn {
+            padding: 0.4rem 1.8rem;
+        }
+        #addModalSaveBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #94a3b8 !important;
+            border-color: #94a3b8 !important;
+        }
+
+        /* ===== 管理选项 ===== */
+        .option-group {
+            margin-bottom: 1.2rem;
+            border: 1px solid #e9edf2;
+            border-radius: 20px;
+            padding: 0.8rem 1rem;
+        }
+        .option-group .group-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+        .option-tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .option-tag-item {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            background: #f1f4f9;
+            padding: 0.1rem 0.4rem 0.1rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+        }
+        .option-tag-item .del-opt {
+            background: transparent;
+            border: none;
+            color: #991b1b;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1;
+            padding: 0 0.1rem;
+        }
+        .option-tag-item .del-opt:hover {
+            color: #b91c1c;
+        }
+        .option-add-row {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            margin-top: 0.2rem;
+        }
+        .option-add-row input {
+            padding: 0.2rem 0.7rem;
+            border: 1px solid #d0d9e6;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            flex: 1;
+        }
+        .option-add-row .btn-sm {
+            padding: 0.1rem 0.8rem;
+        }
+
+        /* ===== Toast 通知 ===== */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1e293b;
+            color: white;
+            padding: 0.8rem 1.6rem;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.success {
+            background: #065f46;
+        }
+        .toast.error {
+            background: #991b1b;
+        }
+
+        /* ===== 登录模态框 ===== */
+        .login-modal .modal-box {
+            max-width: 420px;
+        }
+        .login-modal .modal-field {
+            margin-bottom: 0.6rem;
+        }
+        .login-modal .modal-actions {
+            justify-content: center;
+        }
+        .login-modal .login-error {
+            color: #b91c1c;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .login-modal .login-hint {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 0.3rem;
+        }
+        .login-modal .login-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 0.5rem 0;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        .login-modal .login-divider::before,
+        .login-modal .login-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e9edf2;
+        }
+        .login-modal .admin-login-btn {
+            width: 100%;
+            background: #fef3c7;
+            border-color: #fcd34d;
+            color: #92400e;
+        }
+        .login-modal .admin-login-btn:hover {
+            background: #fde68a;
+        }
+
+        /* ===== 分页控件 ===== */
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            background: #f8fafc;
+            border-top: 1px solid #e9edf2;
+            flex-wrap: wrap;
+        }
+
+        /* ===== 表格提示条 ===== */
+        .table-toolbar {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e9edf2;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .table-toolbar span {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .header-left h1 {
+                font-size: 1.3rem;
+            }
+            .filter-trigger {
+                font-size: 0.8rem;
+                padding: 0.3rem 1rem;
+            }
+            .btn {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.8rem;
+            }
+            table {
+                font-size: 0.8rem;
+                min-width: 700px;
+            }
+            td {
+                padding: 0.4rem 0.4rem;
+            }
+            th {
+                padding: 0.5rem 0.4rem;
+                font-size: 0.75rem;
+            }
+            .modal-box {
+                padding: 1.2rem;
+                max-width: 95%;
+            }
+            .filter-panel {
+                padding: 1rem;
+            }
+            .filter-grid {
+                gap: 0.8rem;
+            }
+            .search-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .search-row>div {
+                min-width: unset;
+            }
+            .drag-handle {
+                font-size: 1rem;
+            }
+            .tab-btn {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            .login-area {
+                justify-content: flex-start;
+            }
+            table {
+                font-size: 0.7rem;
+                min-width: 600px;
+            }
+            td {
+                padding: 0.3rem 0.3rem;
+            }
+            th {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.3rem;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .admin-tools {
+                justify-content: flex-start;
+            }
+            .tag-badge {
+                font-size: 0.6rem;
+                padding: 0.05rem 0.4rem;
+            }
+            .status-badge {
+                font-size: 0.6rem;
+                padding: 0.05rem 0.4rem;
+            }
+            .btn-sm.read-toggle {
+                min-width: 28px;
+                font-size: 0.6rem;
+                padding: 0.05rem 0.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+        <!-- ===== 头部 ===== -->
+        <header class="header">
+            <div class="header-left">
+                <h1>📖 推文检索</h1>
+            </div>
+            <div class="login-area" id="loginArea">
+                <span class="user-badge" id="userBadge">👤 游客</span>
+                <button class="btn btn-secondary" id="loginBtn">登录</button>
+                <button class="btn btn-secondary" id="adminLoginBtn">👑 管理员</button>
+                <button class="btn btn-danger" id="logoutBtn" style="display:none;">退出</button>
+            </div>
+        </header>
+
+        <!-- ===== 描述区 ===== -->
+        <div class="description-area" id="descriptionArea">
+            <div class="description-text" id="descriptionText" contenteditable="false">图书馆使用说明：</div>
+            <div class="description-footer">
+                <span class="edit-hint" id="editHint">🔒</span>
+                <button class="btn btn-sm" id="descToggleBtn" title="展开/收起">📖 展开</button>
+            </div>
+        </div>
+
+        <!-- ===== 用户选项卡 ===== -->
+        <div class="tab-bar" id="tabBar" style="display:none;">
+            <button class="tab-btn active" data-tab="all" id="tabAll">📚 全部文章 <span class="badge" id="allCount">0</span></button>
+            <button class="tab-btn" data-tab="read" id="tabRead">✅ 已读文章 <span class="badge" id="readCount">0</span></button>
+            <button class="tab-btn" data-tab="want" id="tabWant">❤️ 想看文章 <span class="badge" id="wantCount">0</span></button>
+        </div>
+
+        <!-- ===== 筛选栏 ===== -->
+        <div class="filter-bar">
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.6rem;">
+                <button class="filter-trigger" id="filterToggleBtn">
+                    <span>⚙️</span> 筛选 <span id="filterIndicator">(0)</span>
+                </button>
+                <!-- ===== 只看未读选项（仅用户模式） ===== -->
+                <label id="showUnreadLabel" style="display:none; align-items:center; gap:0.3rem; font-size:0.85rem; color:#475569; cursor:pointer; background:#f1f4f9; padding:0.2rem 0.8rem; border-radius:30px; border:1px solid #d0d9e6;">
+                    <input type="checkbox" id="showUnreadOnly" style="accent-color:#1f4b6e; width:15px; height:15px; cursor:pointer;">
+                    只看未读
+                </label>
+            </div>
+            <div class="admin-tools" id="adminTools" style="display:none;">
+                <button class="btn btn-secondary" id="toggleAddRowBtn">➕ 添加条目</button>
+                <button class="btn btn-secondary" id="manageOptionsBtn">📝 管理选项</button>
+            </div>
+        </div>
+
+        <!-- ===== 搜索行 ===== -->
+        <div class="search-row">
+            <div style="display:flex; align-items:center; gap:0.5rem; flex:1; min-width:150px;">
+                <label style="font-weight:500; font-size:0.85rem; color:#475569; white-space:nowrap;">📝 文名</label>
+                <input type="text" id="searchTitle" placeholder="输入文名关键词" style="flex:1; padding:0.4rem 0.8rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white; outline:none; transition:border-color 0.2s;">
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem; flex:1; min-width:150px;">
+                <label style="font-weight:500; font-size:0.85rem; color:#475569; white-space:nowrap;">✍️ 作者</label>
+                <input type="text" id="searchAuthor" placeholder="输入作者关键词" style="flex:1; padding:0.4rem 0.8rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white; outline:none; transition:border-color 0.2s;">
+            </div>
+            <button class="btn btn-secondary" id="clearSearchBtn" style="padding:0.3rem 1rem;">清除</button>
+        </div>
+
+        <!-- ===== 筛选面板 ===== -->
+        <div class="filter-panel" id="filterPanel">
+            <div id="filterGrid"></div>
+            <div class="filter-actions">
+                <button class="btn btn-secondary" id="resetFilterBtn">重置</button>
+                <button class="btn btn-primary" id="applyFilterBtn">确认筛选</button>
+                <button class="btn btn-secondary" id="closeFilterPanelBtn">收起 ▲</button>
+            </div>
+        </div>
+
+        <!-- ===== 表格 ===== -->
+        <div class="table-container">
+            <div class="table-toolbar" id="tableToolbar">
+                <span>🔄 管理员可拖拽行调整顺序，或双击序号手动修改</span>
+            </div>
+            <table id="bookTable">
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- ===== 登录模态框 ===== -->
+    <div class="modal-overlay login-modal" id="loginModal">
+        <div class="modal-box">
+            <h2 id="loginModalTitle">🔑 登录</h2>
+            
+            <!-- 模式切换 -->
+            <div style="display:flex; gap:0.5rem; margin-bottom:1rem; background:#f1f4f9; border-radius:30px; padding:0.2rem;">
+                <button id="loginTabBtn" class="btn btn-primary" style="flex:1; border-radius:30px; padding:0.3rem 0.5rem; font-size:0.8rem;">登录</button>
+                <button id="registerTabBtn" class="btn btn-secondary" style="flex:1; border-radius:30px; padding:0.3rem 0.5rem; font-size:0.8rem;">注册</button>
+            </div>
+            
+            <div class="modal-field">
+                <label>用户名</label>
+                <input type="text" id="loginUsername" placeholder="输入用户名" style="width:100%; padding:0.5rem 0.8rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white;">
+                <span id="usernameCheckResult" style="font-size:0.75rem; display:none;"></span>
+            </div>
+            <div class="modal-field">
+                <label>密码</label>
+                <input type="password" id="loginPassword" placeholder="输入密码（至少6位）" style="width:100%; padding:0.5rem 0.8rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white;">
+            </div>
+            <div class="modal-field" style="margin-top:0.3rem;">
+                <button class="btn btn-primary" id="loginConfirmBtn" style="width:100%;">登录</button>
+            </div>
+            <div class="login-error" id="loginError">用户名已存在或无效</div>
+            <div class="login-hint" id="loginHint">输入用户名和密码登录</div>
+            <div class="login-divider">或</div>
+            <button class="btn admin-login-btn" id="loginAdminBtn">👑 管理员登录</button>
+            <div class="modal-actions" style="margin-top:0.5rem;">
+                <button class="btn btn-secondary" id="loginCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 编辑模态框 ===== -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <h2>✎ 编辑文章信息</h2>
+            <div id="editFormContainer"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="modalCancelBtn">取消</button>
+                <button class="btn btn-primary" id="modalSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 管理选项模态框 ===== -->
+    <div class="modal-overlay" id="optionsModal">
+        <div class="modal-box">
+            <h2>📝 管理可选类别</h2>
+            <p style="color:#475569; margin-bottom:1rem;">每个类别下的选项以标签形式展示，可删除或添加。</p>
+            <div id="optionsContainer"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="optionsCancelBtn">取消</button>
+                <button class="btn btn-primary" id="optionsSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 新增条目模态框 ===== -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-box">
+            <h2>➕ 添加新文章</h2>
+            <div id="addFormContainer"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="addModalCancelBtn">取消</button>
+                <button class="btn btn-primary" id="addModalSaveBtn">确认添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Toast 通知 ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ===== Supabase SDK ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+
+    <script>        
+        (function() {
+            'use strict';
+
+            // ================================================================
+            //  1. 配置
+            // ================================================================
+
+            // ⚠️ 请将以下两个变量替换为你的 Supabase 项目实际值
+            const SUPABASE_URL = 'https://snjalmxaenojztluwsyk.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuamFsbXhhZW5vanp0bHV3c3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNTM2MzAsImV4cCI6MjEwMTcyOTYzMH0.qCbQY-QKEafj1Lw0l8CCapTZKZk2_TfPFOvllEU-ARQ';
+
+            // 管理员账号配置（仅一个账号，密码硬编码）
+            const ADMIN_PASSWORD = 'zmyj210602';
+
+            if (SUPABASE_URL === 'https://your-project.supabase.co') {
+                console.warn('⚠️ 请将 SUPABASE_URL 和 SUPABASE_ANON_KEY 替换为你的实际值');
+            }
+
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // ================================================================
+            //  2. 数据状态
+            // ================================================================
+
+            let BOOKS = [];
+            let nextId = 1;
+
+            
+
+            // 分页状态
+            let currentPage = 1;
+            const pageSize = 10;
+
+            // 用户状态
+            let currentUser = null;      // { id, username }
+            let userReads = [];          // 已读文章ID数组
+            let userWants = [];          // 想看文章ID数组
+            let currentTab = 'all';      // 'all' 或 'read' 或 'want'
+            let showUnreadOnlyState = false;  // 只看未读开关
+
+            // 选项配置
+            let OPTIONS = {
+                platform: ['lofter', 'ao3', 'web', '小红书', '私站'],
+                status: ['已完结', '未完结', '自选结局'],
+                ending: ['he', 'be', 'oe', '自选结局'],
+                attributes: ['龙驰', '驰龙', '互攻', '无差'],
+                car: ['√', '×'],
+                chapters: ['一发完', '多篇章'],
+                tags: ['现背', '纯爱', '破镜重圆', '火葬场', '末世', '刑侦', '娱乐圈', '校园', '师生', '群像', '包养', '论坛体', '古风',
+                    '捡手机', '哨向', '背德', '双性', '网黄', 'fork/cake', 'ABO', '职场', '先婚后爱', '伯牙子期', '赵章', '林章', '性转',
+                    'ntr', '9号房', '穿越'
+                ]
+            };
+
+            let OPTIONS_BACKUP = null;
+
+            // 筛选状态
+            const FILTER_FIELDS = ['platform', 'tags', 'status', 'ending', 'attributes', 'car', 'chapters'];
+            let currentFilter = {};
+            FILTER_FIELDS.forEach(f => { currentFilter[f] = new Set(); });
+
+            // UI 状态
+            let isAdmin = false;
+            let description = '图书馆使用说明：';
+
+            // ================================================================
+            //  3. DOM 引用
+            // ================================================================
+
+            const $ = id => document.getElementById(id);
+            const tableHead = $('tableHead');
+            const tableBody = $('tableBody');
+            const filterPanel = $('filterPanel');
+            const filterToggleBtn = $('filterToggleBtn');
+            const filterGrid = $('filterGrid');
+            const applyBtn = $('applyFilterBtn');
+            const resetBtn = $('resetFilterBtn');
+            const filterIndicator = $('filterIndicator');
+            const loginBtn = $('loginBtn');
+            const adminLoginBtn = $('adminLoginBtn');
+            const logoutBtn = $('logoutBtn');
+            const userBadge = $('userBadge');
+            const adminTools = $('adminTools');
+            const toggleAddRowBtn = $('toggleAddRowBtn');
+            const descriptionText = $('descriptionText');
+            const editHint = $('editHint');
+            const editModal = $('editModal');
+            const editFormContainer = $('editFormContainer');
+            const modalCancelBtn = $('modalCancelBtn');
+            const modalSaveBtn = $('modalSaveBtn');
+            const optionsModal = $('optionsModal');
+            const optionsCancelBtn = $('optionsCancelBtn');
+            const optionsSaveBtn = $('optionsSaveBtn');
+            const manageOptionsBtn = $('manageOptionsBtn');
+            const optionsContainer = $('optionsContainer');
+            const toast = $('toast');
+            const loginModal = $('loginModal');
+            const loginUsername = $('loginUsername');
+            const loginPassword = $('loginPassword');
+            const loginConfirmBtn = $('loginConfirmBtn');
+            const loginCancelBtn = $('loginCancelBtn');
+            const loginError = $('loginError');
+            const loginAdminBtn = $('loginAdminBtn');
+            const tabBar = $('tabBar');
+            const tabAll = $('tabAll');
+            const tabRead = $('tabRead');
+            const tabWant = $('tabWant'); 
+            const allCount = $('allCount');
+            const readCount = $('readCount');
+            const wantCount = $('wantCount'); 
+            const showUnreadOnly = $('showUnreadOnly');  
+            const showUnreadLabel = $('showUnreadLabel'); 
+            const addModal = $('addModal');
+            const addFormContainer = $('addFormContainer');
+            const addModalCancelBtn = $('addModalCancelBtn');
+            const addModalSaveBtn = $('addModalSaveBtn');
+            const clearSearchBtn = $('clearSearchBtn');
+            const searchTitle = $('searchTitle');
+            const searchAuthor = $('searchAuthor');
+            const tableToolbar = $('tableToolbar');
+            const loginModalTitle = $('loginModalTitle');
+            const loginTabBtn = $('loginTabBtn');
+            const registerTabBtn = $('registerTabBtn');
+            const loginHint = $('loginHint');
+            const usernameCheckResult = $('usernameCheckResult');
+            let isLoginMode = true;  // true=登录模式, false=注册模式
+            let addLinkData = {};
+            let editLinkData = {};
+            const descText = $('descriptionText');
+            const descToggleBtn = $('descToggleBtn');
+            let isDescExpanded = false;
+
+            let editingBookId = null;
+            let toastTimer = null;
+
+            
+
+            // ================================================================
+            //  4. Toast 通知
+            // ================================================================
+
+            function showToast(message, type) {
+                if (toastTimer) clearTimeout(toastTimer);
+                toast.textContent = message;
+                toast.className = 'toast' + (type ? ' ' + type : '');
+                toast.classList.add('show');
+                toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            // ================================================================
+            //  5. 用户管理（新增）
+            // ================================================================
+
+            function loadUserSession() {
+                try {
+                    const data = localStorage.getItem('library_user_session');
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        if (Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
+                            currentUser = parsed.user;
+                            return true;
+                        } else {
+                            localStorage.removeItem('library_user_session');
+                        }
+                    }
+                } catch (e) {}
+                return false;
+            }
+
+            function saveUserSession(user) {
+                localStorage.setItem('library_user_session', JSON.stringify({
+                    user: user,
+                    timestamp: Date.now()
+                }));
+            }
+
+            function clearUserSession() {
+                localStorage.removeItem('library_user_session');
+                currentUser = null;
+                userReads = [];
+            }
+
+            function loadAdminSession() {
+                try {
+                    const data = localStorage.getItem('library_admin_session');
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        if (Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
+                            return parsed;
+                        } else {
+                            localStorage.removeItem('library_admin_session');
+                        }
+                    }
+                } catch (e) {}
+                return null;
+            }
+
+            function saveAdminSession(admin) {
+                localStorage.setItem('library_admin_session', JSON.stringify({
+                    admin: admin,
+                    timestamp: Date.now()
+                }));
+            }
+
+            function clearAdminSession() {
+                localStorage.removeItem('library_admin_session');
+            }
+
+            // ===== 实时检测用户名是否存在 =====
+            async function checkUsernameExists(username) {
+                if (!username || username.length < 2) {
+                    usernameCheckResult.style.display = 'none';
+                    return null;
+                }
+                
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('users')
+                        .select('id, username')
+                        .eq('username', username)
+                        .maybeSingle();
+                    
+                    if (error) {
+                        console.error('检查用户名失败:', error);
+                        return null;
+                    }
+                    
+                    return data !== null;
+                } catch (e) {
+                    console.error('检查用户名异常:', e);
+                    return null;
+                }
+            }
+
+            // 用户名输入实时检测
+            loginUsername.addEventListener('input', async function() {
+                const username = this.value.trim();
+                if (!username || username.length < 2) {
+                    usernameCheckResult.style.display = 'none';
+                    return;
+                }
+                
+                const exists = await checkUsernameExists(username);
+                if (exists === null) return;
+                
+                usernameCheckResult.style.display = 'block';
+                if (isLoginMode) {
+                    if (exists) {
+                        usernameCheckResult.textContent = '✅ 用户存在，可登录';
+                        usernameCheckResult.style.color = '#065f46';
+                    } else {
+                        usernameCheckResult.textContent = '⚠️ 用户不存在，请检查或切换到注册';
+                        usernameCheckResult.style.color = '#92400e';
+                    }
+                } else {
+                    // 注册模式
+                    if (exists) {
+                        usernameCheckResult.textContent = '❌ 用户名已被占用';
+                        usernameCheckResult.style.color = '#b91c1c';
+                    } else {
+                        usernameCheckResult.textContent = '✅ 用户名可用';
+                        usernameCheckResult.style.color = '#065f46';
+                    }
+                }
+            });
+
+            async function loadUserReads() {
+                if (!currentUser) {
+                    userReads = [];
+                    userWants = [];
+                    return;
+                }
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('user_reads')
+                        .select('read_ids, want_ids')
+                        .eq('user_id', currentUser.id)
+                        .maybeSingle();
+
+                    if (error && error.code !== 'PGRST116') {
+                        console.error('加载已读/想看标记失败:', error);
+                        userReads = [];
+                        userWants = [];
+                        return;
+                    }
+
+                    if (data) {
+                        userReads = data.read_ids || [];
+                        userWants = data.want_ids || [];
+                    } else {
+                        userReads = [];
+                        userWants = [];
+                        const { error: insertError } = await supabaseClient
+                            .from('user_reads')
+                            .insert([{ user_id: currentUser.id, read_ids: [], want_ids: [] }]);
+                        if (insertError) {
+                            console.warn('初始化已读/想看记录失败:', insertError);
+                        }
+                    }
+                } catch (e) {
+                    console.error('加载已读/想看标记异常:', e);
+                    userReads = [];
+                    userWants = [];
+                }
+            }
+
+
+            async function saveUserReads() {
+                if (!currentUser) return;
+                try {
+                    const { error } = await supabaseClient
+                        .from('user_reads')
+                        .upsert({
+                            user_id: currentUser.id,
+                            read_ids: userReads,
+                            want_ids: userWants,
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'user_id' });
+
+                    if (error) {
+                        console.error('保存标记失败:', error);
+                        showToast('保存标记失败', 'error');
+                    }
+                } catch (e) {
+                    console.error('保存标记异常:', e);
+                }
+            }
+
+            async function toggleRead(bookId) {
+                if (!currentUser) {
+                    showToast('请先登录以使用已读功能', 'error');
+                    return;
+                }
+
+
+                const idx = userReads.indexOf(bookId);
+                if (idx === -1) {
+                    userReads.push(bookId);
+                } else {
+                    userReads.splice(idx, 1);
+                }
+
+                await saveUserReads();
+                updateTabCounts();
+                renderBooks(currentFilter);
+            }
+
+            async function toggleWant(bookId) {
+                if (!currentUser) {
+                    showToast('请先登录以使用想看功能', 'error');
+                    return;
+                }
+
+                const idx = userWants.indexOf(bookId);
+                if (idx === -1) {
+                    userWants.push(bookId);
+                } else {
+                    userWants.splice(idx, 1);
+                }
+
+                await saveUserReads();
+                updateTabCounts();
+                renderBooks(currentFilter);
+            }
+
+            function updateTabCounts() {
+                const allBooks = BOOKS.length;
+                allCount.textContent = allBooks;
+                if (currentUser) {
+                    readCount.textContent = userReads.length;
+                    wantCount.textContent = userWants.length;
+                } else {
+                    readCount.textContent = 0;
+                    wantCount.textContent = 0;
+                }
+            }
+
+            function updateUIForUser() {
+                if (currentUser) {
+                    userBadge.textContent = '👤 ' + currentUser.username;
+                    loginBtn.style.display = 'none';
+                    adminLoginBtn.style.display = 'inline-block';
+                    logoutBtn.style.display = 'inline-block';
+                    tabBar.style.display = 'flex';
+                    showUnreadLabel.style.display = 'flex';
+                    currentTab = 'all';
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    tabAll.classList.add('active');
+                } else {
+                    userBadge.textContent = '👤 游客';
+                    loginBtn.style.display = 'inline-block';
+                    adminLoginBtn.style.display = 'inline-block';
+                    logoutBtn.style.display = 'none';
+                    tabBar.style.display = 'none';
+                    showUnreadLabel.style.display = 'none';
+                    currentTab = 'all';
+                    userReads = [];
+                    userWants = [];
+                    if (showUnreadOnly) showUnreadOnly.checked = false;
+                    showUnreadOnlyState = false;
+                }
+                updateTabCounts();
+                renderTableHeader();
+            }
+
+
+            function updateUIForAdmin() {
+                if (isAdmin) {
+                    adminTools.style.display = 'flex';
+                    descriptionText.contentEditable = 'true';
+                    editHint.textContent = '✏️ 点击文字编辑';
+                    // 管理员登录时自动展开
+                    if (descText) {
+                        descText.classList.add('expanded');
+                        isDescExpanded = true;
+                        if (descToggleBtn) descToggleBtn.textContent = '📖 收起';
+                    }
+                    toggleAddRowBtn.style.display = 'inline-block';
+                    tableToolbar.style.display = 'flex';
+                    adminLoginBtn.textContent = '👑 管理员 ✓';
+                    adminLoginBtn.className = 'btn btn-sm admin-toggle active';
+                } else {
+                    adminTools.style.display = 'none';
+                    descriptionText.contentEditable = 'false';
+                    editHint.textContent = '🔒';
+                    // 退出管理员时收起
+                    if (descText) {
+                        descText.classList.remove('expanded');
+                        isDescExpanded = false;
+                        if (descToggleBtn) descToggleBtn.textContent = '📖 展开';
+                    }
+                    toggleAddRowBtn.style.display = 'none';
+                    tableToolbar.style.display = 'none';
+                    adminLoginBtn.textContent = '👑 管理员';
+                    adminLoginBtn.className = 'btn btn-secondary';
+                    closeEditModal();
+                    closeOptionsModal();
+                }
+                renderTableHeader();
+                renderBooks(currentFilter);
+            }
+
+            // ================================================================
+            //  6. 登录/登出处理
+            // ================================================================
+
+            async function handleUserLogin() {
+                const username = loginUsername.value.trim();
+                const password = loginPassword.value.trim();
+
+                // 验证用户名
+                if (!username) {
+                    loginError.textContent = '请输入用户名';
+                    loginError.style.display = 'block';
+                    return;
+                }
+
+                if (username.length < 2) {
+                    loginError.textContent = '用户名至少2位';
+                    loginError.style.display = 'block';
+                    return;
+                }
+
+                // 验证密码
+                if (!password) {
+                    loginError.textContent = '请输入密码';
+                    loginError.style.display = 'block';
+                    return;
+                }
+
+                if (password.length < 6) {
+                    loginError.textContent = '密码至少6位';
+                    loginError.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    if (isLoginMode) {
+                        // ===== 登录模式 =====
+                        // 先检查用户是否存在
+                        const { data: userExists, error: checkError } = await supabaseClient
+                            .from('users')
+                            .select('id, username')
+                            .eq('username', username)
+                            .maybeSingle();
+
+                        if (checkError) {
+                            console.error('检查用户失败:', checkError);
+                            loginError.textContent = '登录失败，请重试';
+                            loginError.style.display = 'block';
+                            return;
+                        }
+
+                        if (!userExists) {
+                            loginError.textContent = '用户不存在，请先注册';
+                            loginError.style.display = 'block';
+                            return;
+                        }
+
+                        // 验证密码
+                        const { data: verifyResult, error: verifyError } = await supabaseClient
+                            .rpc('verify_user_password', {
+                                p_username: username,
+                                p_password: password
+                            });
+
+                        if (verifyError) {
+                            console.error('密码验证失败:', verifyError);
+                            loginError.textContent = '验证失败，请重试';
+                            loginError.style.display = 'block';
+                            return;
+                        }
+
+                        if (!verifyResult || verifyResult.is_valid !== true) {
+                            loginError.textContent = '密码错误，请重试';
+                            loginError.style.display = 'block';
+                            return;
+                        }
+
+                        // 登录成功
+                        const user = {
+                            id: verifyResult.user_id,
+                            username: verifyResult.username
+                        };
+
+                        currentUser = user;
+                        saveUserSession(user);
+                        await loadUserReads();
+
+                        // ===== 新增：用户登录时，清除管理员状态 =====
+                        if (isAdmin) {
+                            isAdmin = false;
+                            clearAdminSession();
+                            updateUIForAdmin();  // 更新管理员相关 UI
+                        }
+
+                        loginModal.classList.remove('active');
+                        loginError.style.display = 'none';
+                        loginUsername.value = '';
+                        loginPassword.value = '';
+                        usernameCheckResult.style.display = 'none';
+
+                        updateUIForUser();
+                        renderBooks(currentFilter);
+                        showToast('✅ 登录成功！', 'success');
+
+                    } else {
+                        // ===== 注册模式 =====
+                        // 先检查用户名是否已被占用
+                        const { data: existing, error: checkError } = await supabaseClient
+                            .from('users')
+                            .select('id')
+                            .eq('username', username)
+                            .maybeSingle();
+
+                        if (checkError) {
+                            console.error('检查用户失败:', checkError);
+                            loginError.textContent = '注册失败，请重试';
+                            loginError.style.display = 'block';
+                            return;
+                        }
+
+                        if (existing) {
+                            loginError.textContent = '用户名已被占用，请换一个';
+                            loginError.style.display = 'block';
+                            return;
+                        }
+
+                        // 注册新用户
+                        const { data: rpcResult, error: rpcError } = await supabaseClient
+                            .rpc('set_user_password', {
+                                p_username: username,
+                                p_password: password
+                            });
+
+                        if (rpcError) {
+                            console.error('注册失败:', rpcError);
+                            if (rpcError.message && rpcError.message.includes('用户名已存在')) {
+                                loginError.textContent = '用户名已被占用，请换一个';
+                            } else {
+                                loginError.textContent = '注册失败，请重试';
+                            }
+                            loginError.style.display = 'block';
+                            return;
+                        }
+
+                        if (!rpcResult || !rpcResult.user_id) {
+                            loginError.textContent = '注册失败，请重试';
+                            loginError.style.display = 'block';
+                            return;
+                        }
+
+                        const user = {
+                            id: rpcResult.user_id,
+                            username: rpcResult.username
+                        };
+
+                        currentUser = user;
+                        saveUserSession(user);
+                        
+                        // 初始化已读记录
+                        userReads = [];
+                        await supabaseClient
+                            .from('user_reads')
+                            .insert([{ user_id: user.id, read_ids: [] }]);
+
+                        if (isAdmin) {
+                            isAdmin = false;
+                            clearAdminSession();
+                            updateUIForAdmin();
+                        }
+
+                        loginModal.classList.remove('active');
+                        loginError.style.display = 'none';
+                        loginUsername.value = '';
+                        loginPassword.value = '';
+                        usernameCheckResult.style.display = 'none';
+
+                        updateUIForUser();
+                        renderBooks(currentFilter);
+                        showToast('✅ 注册成功！', 'success');
+                    }
+
+                } catch (e) {
+                    console.error('登录异常:', e);
+                    loginError.textContent = '操作异常，请重试';
+                    loginError.style.display = 'block';
+                }
+            }
+
+            async function handleAdminLogin() {
+                const pwd = prompt('请输入管理员密码:');
+                if (pwd === null) return;
+
+                if (pwd === ADMIN_PASSWORD) {
+                    if (currentUser) {
+                        clearUserSession();
+                        currentUser = null;
+                        userReads = [];
+                        userWants = [];
+                        updateUIForUser();  // 更新用户相关 UI
+                    }
+
+                    isAdmin = true;
+                    saveAdminSession(true);
+                    updateUIForAdmin();
+                    showToast('管理员登录成功', 'success');
+                    loginModal.classList.remove('active');
+                } else {
+                    showToast('密码错误', 'error');
+                }
+            }
+
+            function handleLogout() {
+                // 如果管理员已登录，先退出管理员
+                if (isAdmin) {
+                    clearAdminSession();
+                    isAdmin = false;
+                    updateUIForAdmin();
+                    showToast('管理员已退出', 'success');
+                }
+                // 如果用户已登录，退出用户
+                if (currentUser) {
+                    clearUserSession();
+                    updateUIForUser();
+                    renderBooks(currentFilter);
+                    showToast('已退出', 'success');
+                }
+            }
+
+            // ================================================================
+            //  7. 数据库操作（完全保留原有逻辑）
+            // ================================================================
+
+            async function loadBooksFromDB() {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('books')
+                        .select('*')
+                        .order('sort_order', { ascending: true });
+
+                    if (error) {
+                        console.error('加载文章失败:', error);
+                        showToast('加载数据失败: ' + error.message, 'error');
+                        return false;
+                    }
+
+                    if (data && data.length > 0) {
+                        BOOKS = data;
+                        BOOKS.forEach((book, idx) => {
+                            book.sort_order = idx + 1;
+                            // 确保 platform 是数组
+                            if (!Array.isArray(book.platform)) {
+                                book.platform = [];
+                            }
+                            if (!Array.isArray(book.tags)) {
+                                book.tags = [];
+                            }
+                            // 确保 link 是数组
+                            if (!Array.isArray(book.link)) {
+                                book.link = [];
+                            }
+                            // 如果 link 是数组但元素是对象格式，确保正确
+                            if (Array.isArray(book.link) && book.link.length > 0) {
+                                book.link = book.link.map(item => {
+                                    if (typeof item === 'string') {
+                                        return { platform: '链接', url: item };
+                                    }
+                                    if (item && typeof item === 'object' && !item.platform && item.url) {
+                                        return { platform: '链接', url: item.url };
+                                    }
+                                    return item;
+                                });
+                            }
+                        });
+                        const maxId = BOOKS.reduce((max, b) => Math.max(max, b.id), 0);
+                        nextId = maxId + 1;
+                    } else {
+                        BOOKS = [];
+                        nextId = 1;
+                    }
+                    return true;
+                } catch (e) {
+                    console.error('加载文章异常:', e);
+                    showToast('加载数据异常', 'error');
+                    return false;
+                }
+            }
+
+            async function initDefaultBooks() {
+                const defaults = [
+                    { title: '示例文名1', author: '作者名', platform: 'lofter', tags: ['现背'], status: '已完结',
+                    ending: 'he', attributes: '龙驰', car: '√', chapters: '多篇章', link: '#' },
+                    { title: '示例文名2', author: '作者名', platform: 'ao3', tags: ['纯爱'], status: '未完结', ending: 'oe',
+                        attributes: '驰龙', car: '×', chapters: '一发完', link: '#' },
+                    { title: '示例文名3', author: '作者名', platform: 'web', tags: ['破镜重圆', '火葬场'], status: '',
+                        ending: 'be', attributes: '互攻', car: '', chapters: '', link: '#' },
+                    { title: '示例文名4', author: '作者名', platform: '小红书', tags: ['末世'], status: '自选结局', ending: '',
+                        attributes: '无差', car: '', chapters: '', link: '#' },
+                    { title: '示例文名5', author: '作者名', platform: '私站', tags: ['刑侦'], status: '', ending: '',
+                        attributes: '', car: '', chapters: '', link: '#' }
+                ];
+
+                for (const book of defaults) {
+                    const { error } = await supabaseClient
+                        .from('books')
+                        .insert([{
+                            title: book.title,
+                            author: book.author,
+                            platform: book.platform,
+                            tags: book.tags,
+                            status: book.status,
+                            ending: book.ending,
+                            attributes: book.attributes,
+                            car: book.car,
+                            chapters: book.chapters,
+                            link: book.link
+                        }]);
+                    if (error) {
+                        console.error('初始化数据失败:', error);
+                        showToast('初始化数据失败', 'error');
+                        return;
+                    }
+                }
+                await loadBooksFromDB();
+                showToast('已初始化示例数据', 'success');
+            }
+
+            async function saveBooksToDB() {
+                try {
+                    // 使用 upsert 批量更新所有字段
+                    const { error } = await supabaseClient
+                        .from('books')
+                        .upsert(BOOKS, { onConflict: 'id' });
+
+                    if (error) {
+                        console.error('保存失败:', error);
+                        showToast('保存失败: ' + error.message, 'error');
+                        return false;
+                    }
+                    
+                    return true;
+                } catch (e) {
+                    console.error('保存异常:', e);
+                    showToast('保存异常', 'error');
+                    return false;
+                }
+            }
+
+
+            async function deleteBookFromDB(id) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('books')
+                        .delete()
+                        .eq('id', id);
+
+                    if (error) {
+                        console.error('删除失败:', error);
+                        showToast('删除失败: ' + error.message, 'error');
+                        return false;
+                    }
+                    return true;
+                } catch (e) {
+                    console.error('删除异常:', e);
+                    return false;
+                }
+            }
+
+            async function loadDescriptionFromDB() {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('site_config')
+                        .select('value')
+                        .eq('key', 'description')
+                        .single();
+
+                    if (!error && data) {
+                        description = data.value;
+                        descriptionText.innerText = description;
+                    }
+                } catch (e) {
+                    console.warn('加载说明文字失败，使用默认值');
+                }
+            }
+
+            async function saveDescriptionToDB(text) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('site_config')
+                        .upsert({
+                            key: 'description',
+                            value: text,
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'key' });
+
+                    if (error) {
+                        console.error('保存说明失败:', error);
+                        showToast('保存说明失败', 'error');
+                        return false;
+                    }
+                    return true;
+                } catch (e) {
+                    console.error('保存说明异常:', e);
+                    return false;
+                }
+            }
+
+            async function loadOptionsFromDB() {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('site_config')
+                        .select('value')
+                        .eq('key', 'options')
+                        .single();
+
+                    if (!error && data) {
+                        try {
+                            const saved = JSON.parse(data.value);
+                            for (const key of Object.keys(OPTIONS)) {
+                                if (saved[key] && Array.isArray(saved[key]) && saved[key].length > 0) {
+                                    OPTIONS[key] = saved[key];
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('解析选项失败，使用默认值');
+                        }
+                    }
+                } catch (e) {
+                    console.warn('加载选项失败，使用默认值');
+                }
+            }
+
+            async function saveOptionsToDB() {
+                try {
+                    const { error } = await supabaseClient
+                        .from('site_config')
+                        .upsert({
+                            key: 'options',
+                            value: JSON.stringify(OPTIONS),
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'key' });
+
+                    if (error) {
+                        console.error('保存选项失败:', error);
+                        showToast('保存选项失败', 'error');
+                        return false;
+                    }
+                    return true;
+                } catch (e) {
+                    console.error('保存选项异常:', e);
+                    return false;
+                }
+            }
+                        // ================================================================
+            //  8. 渲染函数
+            // ================================================================
+
+            const COLUMNS = [
+                { key: 'index', label: '#', width: '60px' },
+                { key: 'title', label: '文名', width: '180px' },
+                { key: 'author', label: '作者', width: '100px' },
+                { key: 'platform', label: '平台', width: '100px' },
+                { key: 'tags', label: 'tag', width: '160px' },
+                { key: 'status', label: '更新状态', width: '100px' },
+                { key: 'ending', label: '结局', width: '60px' },
+                { key: 'attributes', label: '属性', width: '60px' },
+                { key: 'car', label: '🚗', width: '40px' },
+                { key: 'chapters', label: '章节', width: '90px' },
+                { key: 'link', label: '链接', width: '120px' }
+            ];
+
+            function renderTableHeader() {
+                let html = '<tr>';
+                // 登录用户显示"标记"列（合并已读和想看）
+                if (currentUser) {
+                    html += `<th style="width:60px; min-width:60px; max-width:60px; text-align:center;">标记</th>`;
+                }
+                if (isAdmin) {
+                    html += `<th style="width:90px; min-width:90px; max-width:90px;">操作</th>`;
+                }
+                COLUMNS.forEach(col => {
+                    html += `<th style="width:${col.width}; min-width:${col.width}; max-width:${col.width};">${col.label}</th>`;
+                });
+                html += '</tr>';
+                tableHead.innerHTML = html;
+            }
+
+            // ========== 基于字符串生成稳定颜色的函数 ==========
+            function getTagColor(tag) {
+                let hash = 0;
+                for (let i = 0; i < tag.length; i++) {
+                    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const hue = Math.abs(hash) % 360;
+                const sat = 15 + (Math.abs(hash >> 8) % 15);
+                const lig = 85 + (Math.abs(hash >> 16) % 10);
+                return { hue, sat, lig };
+            }
+
+            function renderBooks(filter) {
+                filter = filter || currentFilter;
+
+                const searchTitle = document.getElementById('searchTitle');
+                const searchAuthor = document.getElementById('searchAuthor');
+                const titleKeyword = searchTitle ? searchTitle.value.trim().toLowerCase() : '';
+                const authorKeyword = searchAuthor ? searchAuthor.value.trim().toLowerCase() : '';
+
+                const filtered = BOOKS.filter(book => {
+                    let platformMatch = true;
+                    if (filter.platform.size > 0) {
+                        const bookPlatforms = Array.isArray(book.platform) ? book.platform : [book.platform];
+                        if (!bookPlatforms.some(p => filter.platform.has(p))) {
+                            platformMatch = false;
+                        }
+                    }
+                    let tagMatch = true;
+                    if (filter.tags.size > 0) {
+                        const bookTags = book.tags || [];
+                        if (!bookTags.some(t => filter.tags.has(t))) tagMatch = false;
+                    }
+                    let statusMatch = true;
+                    if (filter.status.size > 0 && !filter.status.has(book.status)) statusMatch = false;
+                    let endingMatch = true;
+                    if (filter.ending.size > 0 && !filter.ending.has(book.ending)) endingMatch = false;
+                    let attrMatch = true;
+                    if (filter.attributes.size > 0 && !filter.attributes.has(book.attributes)) attrMatch = false;
+                    let carMatch = true;
+                    if (filter.car.size > 0 && !filter.car.has(book.car)) carMatch = false;
+                    let chaptersMatch = true;
+                    if (filter.chapters.size > 0) {
+                        // 检查是否选中了"多篇章"
+                        const wantsMultiChapter = filter.chapters.has('多篇章');
+                        // 检查是否选中了"一发完"
+                        const wantsOneShot = filter.chapters.has('一发完');
+                        
+                        // 如果选中了"多篇章"，匹配所有"X章"格式的条目
+                        if (wantsMultiChapter && !wantsOneShot) {
+                            // 只选中了"多篇章"：匹配所有"X章"格式（包括"多篇章"本身）
+                            const isMultiChapter = /^\d+章$/.test(book.chapters) || book.chapters === '多篇章';
+                            chaptersMatch = isMultiChapter;
+                        } else if (wantsOneShot && !wantsMultiChapter) {
+                            // 只选中了"一发完"：精确匹配"一发完"
+                            chaptersMatch = book.chapters === '一发完';
+                        } else if (wantsOneShot && wantsMultiChapter) {
+                            // 同时选中"一发完"和"多篇章"：匹配"一发完"或"多篇章"或"X章"
+                            chaptersMatch = book.chapters === '一发完' || /^\d+章$/.test(book.chapters) || book.chapters === '多篇章';
+                        } else {
+                            // 其他情况（如选中了自定义选项）：精确匹配
+                            chaptersMatch = filter.chapters.has(book.chapters);
+                        }
+                    }
+                    let titleMatch = true;
+                    if (titleKeyword) {
+                        titleMatch = (book.title || '').toLowerCase().includes(titleKeyword);
+                    }
+                    let authorMatch = true;
+                    if (authorKeyword) {
+                        authorMatch = (book.author || '').toLowerCase().includes(authorKeyword);
+                    }
+                    return platformMatch && tagMatch && statusMatch && endingMatch && attrMatch && carMatch &&
+                        chaptersMatch && titleMatch && authorMatch;
+                });
+
+                // 根据当前选项卡筛选
+                let displayData = filtered;
+
+                // 只看未读（仅在用户模式下）
+                if (currentUser && showUnreadOnly && showUnreadOnly.checked) {
+                    displayData = displayData.filter(book => !userReads.includes(book.id));
+                }
+
+                // 根据当前选项卡筛选
+                if (currentTab === 'read' && currentUser) {
+                    displayData = displayData.filter(book => userReads.includes(book.id));
+                } else if (currentTab === 'want' && currentUser) {
+                    displayData = displayData.filter(book => userWants.includes(book.id));
+                }
+
+                const totalCount = displayData.length;
+                filterIndicator.textContent = `(${BOOKS.length})`;
+                const btnIndicator = filterToggleBtn.querySelector('#filterIndicator');
+                if (btnIndicator) {
+                    btnIndicator.textContent = `(${BOOKS.length})`;
+                }
+
+                const totalPages = Math.ceil(totalCount / pageSize) || 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = Math.min(startIndex + pageSize, totalCount);
+                const pageData = displayData.slice(startIndex, endIndex);
+
+                if (pageData.length === 0) {
+                    tableBody.innerHTML =
+                        `<tr><td colspan="${COLUMNS.length + (isAdmin ? 1 : 0) + (currentUser ? 1 : 0)}" class="empty-message">📭 没有找到符合条件的文章</td></tr>`;
+                    removePagination();
+                    updateTabCounts();
+                    return;
+                }
+
+                let bodyHtml = '';
+                pageData.forEach((book, index) => {
+                    const globalIndex = startIndex + index;
+                    // const rowColorIndex = Math.floor(globalIndex / 5) % 2;
+                    const rowColorIndex = globalIndex % 2;
+                    const bgColor = rowColorIndex === 0 ? '#fff9f9' : '#f5f8ff';
+
+                    bodyHtml += `<tr style="background-color:${bgColor}; transition:background 0.15s;">`;
+
+                    // 标记列（仅登录用户）- 包含已读和想看两个按钮
+                    if (currentUser) {
+                        const isRead = userReads.includes(book.id);
+                        const isWant = userWants.includes(book.id);
+                        bodyHtml += `<td style="text-align:center; width:60px; min-width:60px; max-width:60px;">
+                            <div style="display:flex; gap:0.15rem; justify-content:center;">
+                                <button class="btn-sm read-toggle ${isRead ? '' : 'unread'}" data-id="${book.id}" data-action="read" title="${isRead ? '取消标记已读' : '标记已读'}" style="min-width:28px; padding:0.05rem 0.2rem; font-size:0.7rem;">
+                                    ${isRead ? '✅' : '⬜'}
+                                </button>
+                                <button class="btn-sm want-toggle ${isWant ? '' : 'unread'}" data-id="${book.id}" data-action="want" title="${isWant ? '取消标记想看' : '标记想看'}" style="min-width:28px; padding:0.05rem 0.2rem; font-size:0.7rem; background:${isWant ? '#fecaca' : '#f1f5f9'}; border-color:${isWant ? '#fca5a5' : '#d0d9e6'}; color:${isWant ? '#b91c1c' : '#64748b'};">
+                                    ${isWant ? '❤️' : '🤍'}
+                                </button>
+                            </div>
+                        </td>`;
+                    }
+
+                    // 操作列（仅管理员）
+                    if (isAdmin) {
+                        bodyHtml += `<td style="width:90px; min-width:90px; max-width:90px;">
+                            <div style="display:flex; gap:0.3rem; align-items:center;">
+                                <button class="btn-sm edit" data-id="${book.id}" title="编辑">✎</button>
+                                <button class="btn-sm danger" data-id="${book.id}" title="删除">✕</button>
+                                <span class="drag-handle" draggable="true" title="按住拖动调整顺序" style="cursor:grab; color:#94a3b8; font-size:1.2rem; user-select:none; padding:0 0.2rem; line-height:1;">⠿</span>
+                            </div>
+                        </td>`;
+                    }
+
+                    COLUMNS.forEach(col => {
+                        let value = book[col.key];
+                        if (col.key === 'index') {
+                            value =
+                                `<span class="index-cell" data-index="${globalIndex}" data-bookid="${book.id}" style="cursor:pointer; font-weight:600; color:#64748b; padding:0.2rem 0.4rem; border-radius:4px; display:inline-block; transition:background 0.2s; min-width:30px; text-align:center;">${globalIndex + 1}</span>`;
+                        } else if (col.key === 'tags') {
+                            const tags = Array.isArray(value) ? value : [value];
+                            value = tags.filter(t => t).map(t => {
+                                const { hue, sat, lig } = getTagColor(t);
+                                const color = `hsl(${hue}, ${sat}%, ${lig}%)`;
+                                const textColor = lig > 60 ? '#1e293b' : '#ffffff';
+                                return `<span class="tag-badge" style="background:${color}; color:${textColor};">${t}</span>`;
+                            }).join(' ');
+                        } else if (col.key === 'status') {
+                            let cls = 'status-completed';
+                            if (value === '连载中' || value === '未完结') cls = 'status-serializing';
+                            else if (value === '断更') cls = 'status-hiatus';
+                            value = `<span class="status-badge ${cls}">${value || '-'}</span>`;
+                        } else if (col.key === 'link') {
+                            if (Array.isArray(value) && value.length > 0) {
+                                const validLinks = value.filter(l => l && l.url && l.url !== '#');
+                                if (validLinks.length > 0) {
+                                    // ===== 判断是否只有一条链接且平台为"链接"（旧数据） =====
+                                    const isSingleLegacyLink = validLinks.length === 1 && validLinks[0].platform === '链接';
+                                    
+                                    if (isSingleLegacyLink) {
+                                        // 旧数据：显示为 🔗链接
+                                        const url = validLinks[0].url;
+                                        value = `<a href="${url}" class="link-icon" target="_blank" style="border-bottom:1px dotted #94a3b8; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.1rem; text-decoration:none; color:#1f4b6e;">
+                                            <span style="font-size:0.9rem;">🔗</span>链接
+                                        </a>`;
+                                    } else {
+                                        // 新数据（多平台）：显示为 平台：链接 的标签样式
+                                        const linksHtml = validLinks.map(l => {
+                                            let displayUrl = l.url;
+                                            if (displayUrl.length > 25) {
+                                                displayUrl = displayUrl.substring(0, 22) + '...';
+                                            }
+                                            return `<span class="tag-badge" style="background:#eef2f6; padding:0.1rem 0.5rem; display:inline-flex; align-items:center; gap:0.2rem; margin:0.1rem 0.1rem;">
+                                                <span style="font-weight:600; color:#1f4b6e; font-size:0.7rem;">${l.platform}:</span>
+                                                <a href="${l.url}" class="link-icon" target="_blank" style="border-bottom:1px dotted #94a3b8; font-size:0.7rem;">链接</a>
+                                            </span>`;
+                                        }).join(' ');
+                                        value = linksHtml;
+                                    }
+                                } else {
+                                    value = '-';
+                                }
+                            } else {
+                                value = '-';
+                            }
+                        } else if (col.key === 'chapters') {
+                            value = `<span style="font-weight:500;">${value || '-'}</span>`;
+                        } else if (col.key === 'car') {
+                            value = `<span style="font-size:1.2rem;">${value || '-'}</span>`;
+                        } else if (col.key === 'platform') {
+                            const platforms = Array.isArray(value) ? value : [value];
+                            value = platforms.filter(p => p).map(p => 
+                                `<span class="tag-badge">${p}</span>`
+                            ).join(' ');
+                        }else {
+                            value = value ?? '-';
+                        }
+                        bodyHtml +=
+                            `<td style="width:${col.width}; min-width:${col.width}; max-width:${col.width}; word-break:break-word; box-sizing:border-box;">${value}</td>`;
+                    });
+
+                    bodyHtml += '</tr>';
+                });
+                tableBody.innerHTML = bodyHtml;
+
+                renderPagination(totalCount, totalPages, currentPage);
+                updateTabCounts();
+
+                // ===== 已读和想看按钮事件 =====
+                if (currentUser) {
+                    document.querySelectorAll('#tableBody .read-toggle').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const id = parseInt(this.dataset.id);
+                            toggleRead(id);
+                        });
+                    });
+                    document.querySelectorAll('#tableBody .want-toggle').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const id = parseInt(this.dataset.id);
+                            toggleWant(id);
+                        });
+                    });
+                }
+
+                // ===== 编辑和删除按钮事件 =====
+                if (isAdmin) {
+                    document.querySelectorAll('#tableBody .btn-sm.edit').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const id = parseInt(btn.dataset.id);
+                            openEditModal(id);
+                        });
+                    });
+                    document.querySelectorAll('#tableBody .btn-sm.danger').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const id = parseInt(btn.dataset.id);
+                            if (confirm('确定删除这篇文章吗？')) {
+                                deleteBook(id);
+                            }
+                        });
+                    });
+                }
+
+                // ===== 拖拽排序（仅管理员） =====
+                if (isAdmin) {
+                    setupDragAndDrop();
+                }
+
+                // ===== 双击序号原地修改 =====
+                if (isAdmin) {
+                    const indexCells = tableBody.querySelectorAll('.index-cell');
+                    indexCells.forEach(cell => {
+                        cell.addEventListener('dblclick', function(e) {
+                            e.stopPropagation();
+
+                            if (this.querySelector('input')) return;
+
+                            const currentGlobalIndex = parseInt(this.dataset.index);
+                            const bookId = parseInt(this.dataset.bookid);
+                            const total = BOOKS.length;
+                            const currentValue = currentGlobalIndex + 1;
+                            const originalText = this.textContent;
+
+                            const input = document.createElement('input');
+                            input.type = 'number';
+                            input.min = 1;
+                            input.max = total;
+                            input.value = currentValue;
+                            input.className = 'index-input';
+                            input.style.width = '40px';
+                            input.style.padding = '0.1rem 0.2rem';
+                            input.style.border = '2px solid #1f4b6e';
+                            input.style.borderRadius = '6px';
+                            input.style.fontSize = '0.85rem';
+                            input.style.fontWeight = '600';
+                            input.style.textAlign = 'center';
+                            input.style.background = 'white';
+                            input.style.color = '#1e293b';
+                            input.style.outline = 'none';
+                            input.style.boxShadow = '0 0 0 3px rgba(31, 75, 110, 0.15)';
+
+                            this.textContent = '';
+                            this.appendChild(input);
+                            input.focus();
+                            input.select();
+
+                            const cellRef = this;
+
+                            function finishEdit(save = true) {
+                                if (!save) {
+                                    cellRef.textContent = originalText;
+                                    return;
+                                }
+
+                                const newValue = parseInt(input.value);
+                                if (isNaN(newValue) || newValue < 1 || newValue > total) {
+                                    showToast('❌ 请输入有效序号（1-' + total + '）', 'error');
+                                    cellRef.textContent = originalText;
+                                    return;
+                                }
+
+                                const targetIndex = newValue - 1;
+                                const currentBookIndex = BOOKS.findIndex(b => b.id === bookId);
+                                if (currentBookIndex === -1) {
+                                    cellRef.textContent = originalText;
+                                    return;
+                                }
+
+                                if (currentBookIndex === targetIndex) {
+                                    cellRef.textContent = originalText;
+                                    return;
+                                }
+
+                                const [movedBook] = BOOKS.splice(currentBookIndex, 1);
+                                BOOKS.splice(targetIndex, 0, movedBook);
+
+                                BOOKS.forEach((book, idx) => {
+                                    book.sort_order = idx + 1;
+                                });
+
+                                currentPage = 1;
+                                renderBooks(currentFilter);
+                                showToast('✅ 序号已更新', 'success');
+                                saveBooksToDB();
+                            }
+
+                            input.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    finishEdit(true);
+                                } else if (e.key === 'Escape') {
+                                    e.preventDefault();
+                                    finishEdit(false);
+                                }
+                            });
+
+                            input.addEventListener('blur', function() {
+                                setTimeout(() => {
+                                    if (cellRef.querySelector('input')) {
+                                        finishEdit(true);
+                                    }
+                                }, 150);
+                            });
+
+                            input.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                            });
+                        });
+                    });
+                }
+            }
+
+            // ================================================================
+            //  9. 拖拽排序
+            // ================================================================
+
+            function setupDragAndDrop() {
+                const rows = tableBody.querySelectorAll('tr');
+                let dragIndex = null;
+                let isDragging = false;
+                let dragStartY = 0;
+                let rowHeight = 0;
+                let targetRowIndex = null;
+                let dragRow = null;
+                let container = document.querySelector('.table-container');
+                let scrollFrame = null;
+                let dragRowInitialRect = null;
+                let initialPageScrollY = 0;
+                let dragStartMouseY = 0;
+                let lastMouseY = 0;
+
+                // ---------- 触摸拖拽相关变量 ----------
+                let touchDragClone = null;
+                let touchOffsetY = 0;
+                let touchStartRowTop = 0;
+
+                // 停止自动滚动
+                function stopAutoScroll() {
+                    if (scrollFrame) {
+                        cancelAnimationFrame(scrollFrame);
+                        scrollFrame = null;
+                    }
+                }
+
+                // 开始自动滚动 - 滚动整个页面
+                function startAutoScroll(direction) {
+                    stopAutoScroll();
+                    const speed = 6;
+
+                    function scrollStep() {
+                        if (!isDragging || !dragRow) {
+                            stopAutoScroll();
+                            return;
+                        }
+                        window.scrollBy(0, speed * direction);
+                        updateDragRowPosition();
+                        scrollFrame = requestAnimationFrame(scrollStep);
+                    }
+                    scrollFrame = requestAnimationFrame(scrollStep);
+                }
+
+                // 更新被拖拽行位置
+                function updateDragRowPosition() {
+                    if (!dragRow || !isDragging) return;
+
+                    const containerRect = container.getBoundingClientRect();
+                    const mouseY = window._dragMouseY || (containerRect.top + containerRect.height / 2);
+
+                    const pageScrollDelta = window.scrollY - initialPageScrollY;
+                    const mouseRelativeToContainer = mouseY - containerRect.top + container.scrollTop + pageScrollDelta;
+
+                    let targetTop = mouseRelativeToContainer - dragStartY;
+
+                    if (targetTop < 0) {
+                        targetTop = 0;
+                    }
+                    if (targetTop + rowHeight > container.scrollHeight) {
+                        targetTop = container.scrollHeight - rowHeight;
+                    }
+
+                    const deltaY = targetTop - dragRowInitialRect.top;
+                    dragRow.style.transform = `translateY(${deltaY}px)`;
+                }
+
+                // 清除所有行的拖拽状态
+                function clearAllDragStates() {
+                    rows.forEach(r => {
+                        r.classList.remove('drag-over');
+                        r.classList.remove('dragging');
+                        r.style.transform = '';
+                        r.style.opacity = '';
+                        r.style.zIndex = '';
+                        r.style.boxShadow = '';
+                        r.style.position = '';
+                        r.style.transition = '';
+                        r.style.background = '';
+                    });
+                    const indicators = document.querySelectorAll('.drag-indicator-line');
+                    indicators.forEach(el => el.remove());
+                    dragRow = null;
+                    dragRowInitialRect = null;
+                    if (touchDragClone && touchDragClone.parentNode) {
+                        touchDragClone.parentNode.removeChild(touchDragClone);
+                        touchDragClone = null;
+                    }
+                }
+
+                // 在目标行上方插入深色指示线
+                function showDragIndicator(row) {
+                    const indicators = document.querySelectorAll('.drag-indicator-line');
+                    indicators.forEach(el => el.remove());
+
+                    if (!row) return;
+
+                    const indicator = document.createElement('div');
+                    indicator.className = 'drag-indicator-line';
+                    indicator.style.cssText = `
+                        height: 3px;
+                        background: #1f4b6e;
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        top: -2px;
+                        z-index: 50;
+                        border-radius: 2px;
+                        box-shadow: 0 0 8px rgba(31, 75, 110, 0.3);
+                        pointer-events: none;
+                    `;
+                    row.style.position = 'relative';
+                    row.appendChild(indicator);
+                }
+
+                // 查找目标行
+                function findTargetRow(mouseY) {
+                    const allRows = Array.from(rows);
+                    let targetRow = null;
+
+                    const containerRect = container.getBoundingClientRect();
+                    const pageScrollDelta = window.scrollY - initialPageScrollY;
+                    const mouseRelativeToContainer = mouseY - containerRect.top + container.scrollTop + pageScrollDelta;
+
+                    const rowPositions = allRows.map((r) => {
+                        const rRect = r.getBoundingClientRect();
+                        const rowTop = rRect.top - containerRect.top + container.scrollTop + pageScrollDelta;
+                        const rowBottom = rRect.bottom - containerRect.top + container.scrollTop + pageScrollDelta;
+                        return { row: r, top: rowTop, bottom: rowBottom, mid: (rowTop + rowBottom) / 2 };
+                    });
+
+                    const filteredPositions = rowPositions.filter(p => p.row !== dragRow);
+
+                    for (let i = 0; i < filteredPositions.length; i++) {
+                        const pos = filteredPositions[i];
+                        if (mouseRelativeToContainer > pos.top && mouseRelativeToContainer < pos.mid) {
+                            targetRow = pos.row;
+                            break;
+                        }
+                        if (mouseRelativeToContainer > pos.mid && mouseRelativeToContainer < pos.bottom) {
+                            if (i + 1 < filteredPositions.length) {
+                                targetRow = filteredPositions[i + 1].row;
+                            } else {
+                                targetRow = pos.row;
+                            }
+                            break;
+                        }
+                    }
+
+                    if (!targetRow) {
+                        for (let i = 0; i < filteredPositions.length - 1; i++) {
+                            const pos1 = filteredPositions[i];
+                            const pos2 = filteredPositions[i + 1];
+                            if (mouseRelativeToContainer > pos1.bottom && mouseRelativeToContainer < pos2.top) {
+                                targetRow = pos2.row;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!targetRow && filteredPositions.length > 0) {
+                        const firstPos = filteredPositions[0];
+                        if (mouseRelativeToContainer < firstPos.top) {
+                            targetRow = firstPos.row;
+                        }
+                    }
+
+                    if (!targetRow && filteredPositions.length > 0) {
+                        const lastPos = filteredPositions[filteredPositions.length - 1];
+                        if (mouseRelativeToContainer > lastPos.bottom) {
+                            targetRow = lastPos.row;
+                        }
+                    }
+
+                    return targetRow;
+                }
+
+                // ---------- 鼠标拖拽事件 ----------
+                function onDocumentDragOver(e) {
+                    if (!isDragging || !dragRow) return;
+                    e.preventDefault();
+
+                    window._dragMouseY = e.clientY;
+                    lastMouseY = e.clientY;
+
+                    updateDragRowPosition();
+
+                    const mouseY = e.clientY;
+                    const targetRow = findTargetRow(mouseY);
+
+                    rows.forEach(r => r.classList.remove('drag-over'));
+                    const indicators = document.querySelectorAll('.drag-indicator-line');
+                    indicators.forEach(el => el.remove());
+
+                    if (targetRow && targetRow !== dragRow) {
+                        const targetBookId = parseInt(targetRow.querySelector('.edit')?.dataset.id);
+                        const targetIndex = BOOKS.findIndex(b => b.id === targetBookId);
+                        if (targetIndex !== -1 && targetIndex !== dragIndex) {
+                            targetRow.classList.add('drag-over');
+                            showDragIndicator(targetRow);
+                            targetRowIndex = targetIndex;
+                        }
+                    } else {
+                        targetRowIndex = null;
+                    }
+
+                    const viewportHeight = window.innerHeight;
+                    const mouseYInViewport = e.clientY;
+                    const scrollThreshold = 80;
+
+                    const distanceToPageTop = mouseYInViewport;
+                    const distanceToPageBottom = viewportHeight - mouseYInViewport;
+
+                    const maxScrollY = document.documentElement.scrollHeight - viewportHeight;
+                    const canScrollUp = window.scrollY > 0;
+                    const canScrollDown = window.scrollY < maxScrollY;
+
+                    if (distanceToPageTop < scrollThreshold && canScrollUp) {
+                        if (!scrollFrame) {
+                            startAutoScroll(-1);
+                        }
+                    } else if (distanceToPageBottom < scrollThreshold && canScrollDown) {
+                        if (!scrollFrame) {
+                            startAutoScroll(1);
+                        }
+                    } else {
+                        stopAutoScroll();
+                    }
+                }
+
+                // ---------- 触摸拖拽事件 ----------
+                function onTouchStart(e) {
+                    // ===== 关键：阻止默认行为，防止页面滚动 =====
+                    e.preventDefault();
+
+                    const touch = e.touches[0];
+                    const handle = e.currentTarget;
+                    const row = handle.closest('tr');
+                    
+                    // 检查是否点击的是拖拽手柄
+                    if (!row) return;
+                    
+                    const bookId = parseInt(row.querySelector('.edit')?.dataset.id);
+                    const idx = BOOKS.findIndex(b => b.id === bookId);
+                    if (idx === -1) return;
+
+                    // 阻止页面滚动
+                    e.preventDefault();
+
+                    dragIndex = idx;
+                    dragRow = row;
+                    isDragging = true;
+                    container = document.querySelector('.table-container');
+
+                    const rect = row.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    rowHeight = rect.height;
+
+                    touchOffsetY = touch.clientY - rect.top;
+                    touchStartRowTop = rect.top;
+                    dragStartY = touch.clientY - rect.top;
+                    initialPageScrollY = window.scrollY;
+                    dragStartMouseY = touch.clientY;
+                    lastMouseY = touch.clientY;
+
+                    dragRowInitialRect = {
+                        top: rect.top - containerRect.top + container.scrollTop,
+                        left: rect.left - containerRect.left
+                    };
+
+                    window._dragMouseY = touch.clientY;
+
+                    // 创建触摸拖拽克隆（用于视觉反馈）
+                    touchDragClone = row.cloneNode(true);
+                    touchDragClone.style.position = 'fixed';
+                    touchDragClone.style.zIndex = '9999';
+                    touchDragClone.style.pointerEvents = 'none';
+                    touchDragClone.style.width = row.offsetWidth + 'px';
+                    touchDragClone.style.background = '#ffffff';
+                    touchDragClone.style.boxShadow = '0 8px 30px rgba(0,0,0,0.25)';
+                    touchDragClone.style.borderRadius = '8px';
+                    touchDragClone.style.border = '2px solid #1f4b6e';
+                    touchDragClone.style.opacity = '0.92';
+                    touchDragClone.style.display = 'table';
+                    touchDragClone.style.tableLayout = 'fixed';
+                    touchDragClone.style.transform = 'scale(1.02)';
+                    
+                    // 复制列宽
+                    const cells = row.querySelectorAll('td');
+                    const cloneCells = touchDragClone.querySelectorAll('td');
+                    cells.forEach((td, idx2) => {
+                        if (cloneCells[idx2]) {
+                            cloneCells[idx2].style.width = td.offsetWidth + 'px';
+                            cloneCells[idx2].style.minWidth = td.offsetWidth + 'px';
+                            cloneCells[idx2].style.maxWidth = td.offsetWidth + 'px';
+                            cloneCells[idx2].style.boxSizing = 'border-box';
+                        }
+                    });
+                    
+                    touchDragClone.querySelectorAll('.edit, .danger, .drag-handle').forEach(el => {
+                        el.style.pointerEvents = 'none';
+                    });
+                    
+                    document.body.appendChild(touchDragClone);
+                    touchDragClone.style.left = (touch.clientX - 10) + 'px';
+                    touchDragClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+
+                    row.classList.add('dragging');
+                    row.style.opacity = '0.4';
+                    row.style.zIndex = '10';
+                    row.style.position = 'relative';
+                    row.style.transition = 'none';
+                    row.style.boxShadow = '0 2px 12px rgba(0,0,0,0.1)';
+                    row.style.background = '#ffffff';
+
+                    // 绑定触摸移动和结束事件
+                    document.addEventListener('touchmove', onTouchMove, { passive: false });
+                    document.addEventListener('touchend', onTouchEnd, { passive: false });
+                    document.addEventListener('touchcancel', onTouchEnd, { passive: false });
+                }
+
+                function onTouchMove(e) {
+                    e.preventDefault();
+                    if (!isDragging || !dragRow) return;
+
+                    const touch = e.touches[0];
+                    const clientY = touch.clientY;
+
+                    window._dragMouseY = clientY;
+                    lastMouseY = clientY;
+
+                    // 更新克隆位置
+                    if (touchDragClone) {
+                        touchDragClone.style.left = (touch.clientX - 10) + 'px';
+                        touchDragClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+                    }
+
+                    // 更新行位置
+                    updateDragRowPosition();
+
+                    // 查找目标行
+                    const targetRow = findTargetRow(clientY);
+
+                    rows.forEach(r => r.classList.remove('drag-over'));
+                    const indicators = document.querySelectorAll('.drag-indicator-line');
+                    indicators.forEach(el => el.remove());
+
+                    if (targetRow && targetRow !== dragRow) {
+                        const targetBookId = parseInt(targetRow.querySelector('.edit')?.dataset.id);
+                        const targetIndex = BOOKS.findIndex(b => b.id === targetBookId);
+                        if (targetIndex !== -1 && targetIndex !== dragIndex) {
+                            targetRow.classList.add('drag-over');
+                            showDragIndicator(targetRow);
+                            targetRowIndex = targetIndex;
+                        }
+                    } else {
+                        targetRowIndex = null;
+                    }
+
+                    // 页面滚动检测
+                    const viewportHeight = window.innerHeight;
+                    const mouseYInViewport = clientY;
+                    const scrollThreshold = 80;
+
+                    const distanceToPageTop = mouseYInViewport;
+                    const distanceToPageBottom = viewportHeight - mouseYInViewport;
+
+                    const maxScrollY = document.documentElement.scrollHeight - viewportHeight;
+                    const canScrollUp = window.scrollY > 0;
+                    const canScrollDown = window.scrollY < maxScrollY;
+
+                    if (distanceToPageTop < scrollThreshold && canScrollUp) {
+                        if (!scrollFrame) {
+                            startAutoScroll(-1);
+                        }
+                    } else if (distanceToPageBottom < scrollThreshold && canScrollDown) {
+                        if (!scrollFrame) {
+                            startAutoScroll(1);
+                        }
+                    } else {
+                        stopAutoScroll();
+                    }
+                }
+
+                function onTouchEnd(e) {
+                    if (!isDragging) {
+                        return;
+                    }
+
+                    document.removeEventListener('touchmove', onTouchMove);
+                    document.removeEventListener('touchend', onTouchEnd);
+                    document.removeEventListener('touchcancel', onTouchEnd);
+
+                    // 清理克隆
+                    if (touchDragClone && touchDragClone.parentNode) {
+                        touchDragClone.parentNode.removeChild(touchDragClone);
+                        touchDragClone = null;
+                    }
+
+                    // 清除高亮
+                    rows.forEach(r => r.classList.remove('drag-over'));
+                    const indicators = document.querySelectorAll('.drag-indicator-line');
+                    indicators.forEach(el => el.remove());
+
+                    if (dragIndex === null || !isDragging) {
+                        clearAllDragStates();
+                        return;
+                    }
+
+                    let targetIdx = targetRowIndex;
+                    if (targetIdx === null) {
+                        const targetBookId = dragRow?.querySelector('.edit')?.dataset.id;
+                        if (targetBookId) {
+                            targetIdx = BOOKS.findIndex(b => b.id === parseInt(targetBookId));
+                        }
+                    }
+
+                    // 清理拖拽状态
+                    const tempDragRow = dragRow;
+                    const tempDragIndex = dragIndex;
+                    const tempTargetIdx = targetIdx;
+
+                    clearAllDragStates();
+                    stopAutoScroll();
+                    window._dragMouseY = null;
+                    dragRowInitialRect = null;
+
+                    if (tempTargetIdx === -1 || tempDragIndex === tempTargetIdx || tempTargetIdx === null) {
+                        isDragging = false;
+                        return;
+                    }
+
+                    const [movedBook] = BOOKS.splice(tempDragIndex, 1);
+                    if (tempTargetIdx > tempDragIndex) {
+                        BOOKS.splice(tempTargetIdx - 1, 0, movedBook);
+                    } else {
+                        BOOKS.splice(tempTargetIdx, 0, movedBook);
+                    }
+
+                    BOOKS.forEach((book, idx) => {
+                        book.sort_order = idx + 1;
+                    });
+
+                    isDragging = false;
+                    targetRowIndex = null;
+                    window._dragMouseY = null;
+                    dragRowInitialRect = null;
+
+
+                    renderBooks(currentFilter);
+                    showToast('顺序已调整', 'success');
+                    saveBooksToDB();
+                }
+
+                // ---------- 绑定事件到每个行 ----------
+                rows.forEach(row => {
+                    const handle = row.querySelector('.drag-handle');
+                    if (!handle) return;
+
+                    // 鼠标拖拽事件（桌面端）
+                    handle.addEventListener('dragstart', function(e) {
+                        const bookId = parseInt(row.querySelector('.edit')?.dataset.id);
+                        dragIndex = BOOKS.findIndex(b => b.id === bookId);
+                        if (dragIndex === -1) return;
+
+                        isDragging = true;
+                        dragRow = row;
+                        container = document.querySelector('.table-container');
+
+                        const rect = row.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+                        rowHeight = rect.height;
+
+                        dragStartY = e.clientY - rect.top;
+                        initialPageScrollY = window.scrollY;
+                        dragStartMouseY = e.clientY;
+                        lastMouseY = e.clientY;
+
+                        dragRowInitialRect = {
+                            top: rect.top - containerRect.top + container.scrollTop,
+                            left: rect.left - containerRect.left
+                        };
+
+                        window._dragMouseY = e.clientY;
+
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', dragIndex);
+                        const blankImg = new Image();
+                        blankImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                        e.dataTransfer.setDragImage(blankImg, 0, 0);
+
+                        row.classList.add('dragging');
+                        row.style.opacity = '0.85';
+                        row.style.zIndex = '10';
+                        row.style.position = 'relative';
+                        row.style.transition = 'none';
+                        row.style.boxShadow = '0 2px 12px rgba(0,0,0,0.1)';
+                        row.style.background = '#ffffff';
+
+                        document.addEventListener('dragover', onDocumentDragOver);
+                    });
+
+                    handle.addEventListener('dragend', function(e) {
+                        isDragging = false;
+                        document.removeEventListener('dragover', onDocumentDragOver);
+                        clearAllDragStates();
+                        stopAutoScroll();
+                        window._dragMouseY = null;
+                        dragRowInitialRect = null;
+                    });
+
+                    row.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                    });
+
+                    row.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        document.removeEventListener('dragover', onDocumentDragOver);
+                        clearAllDragStates();
+                        stopAutoScroll();
+
+                        if (dragIndex === null || !isDragging) {
+                            isDragging = false;
+                            return;
+                        }
+
+                        let targetIdx = targetRowIndex;
+                        if (targetIdx === null) {
+                            const targetBookId = parseInt(this.querySelector('.edit')?.dataset.id);
+                            targetIdx = BOOKS.findIndex(b => b.id === targetBookId);
+                        }
+
+                        if (targetIdx === -1 || dragIndex === targetIdx) {
+                            isDragging = false;
+                            return;
+                        }
+
+                        const [movedBook] = BOOKS.splice(dragIndex, 1);
+                        if (targetIdx > dragIndex) {
+                            BOOKS.splice(targetIdx - 1, 0, movedBook);
+                        } else {
+                            BOOKS.splice(targetIdx, 0, movedBook);
+                        }
+                        
+                        BOOKS.forEach((book, idx) => {
+                            book.sort_order = idx + 1;
+                        });
+
+                        isDragging = false;
+                        targetRowIndex = null;
+                        window._dragMouseY = null;
+                        dragRowInitialRect = null;
+
+                        renderBooks(currentFilter);
+                        showToast('顺序已调整', 'success');
+                        saveBooksToDB();
+                    });
+
+                    // ========== 触摸拖拽事件（手机端） ==========
+                    // 防止触摸时触发页面滚动
+                    handle.addEventListener('touchstart', function(e) {
+                        // 不在这里处理，由 onTouchStart 处理
+                    }, { passive: true });
+
+                    // 使用独立的触摸事件处理
+                    handle.addEventListener('touchstart', onTouchStart, { passive: false });
+                });
+            }
+            // ================================================================
+            //  10. 分页控件
+            // ================================================================
+
+            function renderPagination(total, totalPages, current) {
+                removePagination();
+
+                if (totalPages <= 1) return;
+
+                const container = document.querySelector('.table-container');
+                const paginationDiv = document.createElement('div');
+                paginationDiv.id = 'paginationControls';
+                paginationDiv.style.cssText =
+                    'display:flex; justify-content:center; align-items:center; gap:0.5rem; padding:0.8rem 1rem; background:#f8fafc; border-top:1px solid #e9edf2; flex-wrap:wrap;';
+
+
+                const firstBtn = document.createElement('button');
+                firstBtn.textContent = '⏮ 首页';
+                firstBtn.className = 'btn btn-secondary';
+                firstBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                firstBtn.disabled = current <= 1;
+                firstBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage = 1;
+                        renderBooks(currentFilter);
+                    }
+                });
+                paginationDiv.appendChild(firstBtn);
+                
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = '◀ 上一页';
+                prevBtn.className = 'btn btn-secondary';
+                prevBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                prevBtn.disabled = current <= 1;
+                prevBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderBooks(currentFilter);
+                    }
+                });
+                paginationDiv.appendChild(prevBtn);
+
+                const infoSpan = document.createElement('span');
+                infoSpan.textContent = `第 ${current} / ${totalPages} 页（共 ${total} 条）`;
+                infoSpan.style.cssText = 'font-size:0.85rem; color:#475569; margin:0 0.5rem;';
+                paginationDiv.appendChild(infoSpan);
+
+                const jumpWrapper = document.createElement('span');
+                jumpWrapper.style.cssText = 'display:flex; align-items:center; gap:0.3rem;';
+
+                const jumpInput = document.createElement('input');
+                jumpInput.type = 'number';
+                jumpInput.min = 1;
+                jumpInput.max = totalPages;
+                jumpInput.value = current;
+                jumpInput.style.cssText =
+                    'width:50px; padding:0.15rem 0.3rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.8rem; text-align:center; background:white; outline:none;';
+                jumpInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        const val = parseInt(this.value);
+                        if (val >= 1 && val <= totalPages) {
+                            currentPage = val;
+                            renderBooks(currentFilter);
+                        } else {
+                            showToast('请输入 1-' + totalPages + ' 之间的页码', 'error');
+                            this.value = current;
+                        }
+                    }
+                });
+                jumpInput.addEventListener('blur', function() {
+                    const val = parseInt(this.value);
+                    if (isNaN(val) || val < 1 || val > totalPages) {
+                        this.value = current;
+                    }
+                });
+                jumpWrapper.appendChild(jumpInput);
+
+                const jumpLabel = document.createElement('span');
+                jumpLabel.textContent = '页';
+                jumpLabel.style.cssText = 'font-size:0.8rem; color:#64748b;';
+                jumpWrapper.appendChild(jumpLabel);
+                paginationDiv.appendChild(jumpWrapper);
+
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = '下一页 ▶';
+                nextBtn.className = 'btn btn-secondary';
+                nextBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                nextBtn.disabled = current >= totalPages;
+                nextBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderBooks(currentFilter);
+                    }
+                });
+                paginationDiv.appendChild(nextBtn);
+
+
+                const lastBtn = document.createElement('button');
+                lastBtn.textContent = '尾页 ⏭';
+                lastBtn.className = 'btn btn-secondary';
+                lastBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                lastBtn.disabled = current >= totalPages;
+                lastBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage = totalPages;
+                        renderBooks(currentFilter);
+                    }
+                });
+                paginationDiv.appendChild(lastBtn);
+
+                container.appendChild(paginationDiv);
+            }
+
+            function removePagination() {
+                const existing = document.getElementById('paginationControls');
+                if (existing) existing.remove();
+            }
+
+            // ================================================================
+            //  11. 筛选面板
+            // ================================================================
+
+            function renderFilterPanel() {
+                const searchTitle = document.getElementById('searchTitle');
+                const searchAuthor = document.getElementById('searchAuthor');
+                const savedTitle = searchTitle ? searchTitle.value : '';
+                const savedAuthor = searchAuthor ? searchAuthor.value : '';
+
+                // 定义每个字段的标签和列占用
+                const fieldConfig = {
+                    'platform': { label: '📱 平台', cols: 2 },
+                    'tags': { label: '🏷️ tag', cols: 4 },
+                    'status': { label: '📌 更新状态', cols: 1 },
+                    'ending': { label: '🎯 结局', cols: 1 },
+                    'attributes': { label: '✨ 属性', cols: 1 },
+                    'car': { label: '🚗', cols: 1 },
+                    'chapters': { label: '📖 章节', cols: 1 }
+                };
+
+                // 按顺序排列：平台(2列) -> tags(4列) -> 状态+结局(各1列) -> 属性+🚗+章节(各1列)
+                const orderedFields = ['platform', 'tags', 'status', 'ending', 'attributes', 'car', 'chapters'];
+
+                let html = '';
+
+                // 使用 flex 容器，自动换行，并添加响应式适配
+                html += `<div style="display:flex; flex-wrap:wrap; gap:0.5rem 1.5rem; align-items:flex-start; width:100%;">`;
+
+                orderedFields.forEach(fieldKey => {
+                    const options = getFilterOptions(fieldKey);
+                    const config = fieldConfig[fieldKey];
+                    const cols = config ? config.cols : 1;
+                    const label = config ? config.label : fieldKey;
+
+                    // ===== 手机端适配：使用响应式宽度 =====
+                    // 在手机端（<768px），tags 占满整行，其他占一半
+                    // 在电脑端，按原计划分配
+                    let flexBasis;
+                    let minWidth;
+                    let flexGrow = fieldKey === 'tags' ? 3 : 1;
+
+                    if (fieldKey === 'tags') {
+                        // tag 在手机端占满整行，电脑端占 4 列
+                        flexBasis = '100%';
+                        minWidth = '200px';
+                        flexGrow = 3;
+                    } else if (fieldKey === 'platform') {
+                        // 平台在手机端占一半，电脑端占 2 列
+                        flexBasis = 'calc(50% - 0.75rem)';
+                        minWidth = '120px';
+                    } else {
+                        // 其他在手机端占一半，电脑端占 1 列
+                        flexBasis = 'calc(50% - 0.75rem)';
+                        minWidth = '100px';
+                    }
+
+                    html += `<div style="flex: ${flexGrow} 1 ${flexBasis}; min-width:${minWidth}; margin-bottom:0.3rem; overflow:hidden;">`;
+                    html += `<div style="font-weight:500; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.02em; color:#475569; margin-bottom:0.2rem;">${label}</div>`;
+                    html += `<div class="filter-options" data-field="${fieldKey}" style="display:flex; flex-wrap:wrap; gap:0.2rem 0.4rem; width:100%;">`;
+
+                    options.forEach(opt => {
+                        const checked = currentFilter[fieldKey]?.has(opt) || false;
+                        // 确保标签不溢出，自动换行
+                        html += `<label style="display:inline-flex; align-items:center; gap:0.15rem; font-weight:400; font-size:0.8rem; background:#f1f4f9; padding:0.05rem 0.4rem 0.05rem 0.3rem; border-radius:30px; cursor:pointer; border:1px solid transparent; white-space:nowrap; max-width:100%;">
+                            <input type="checkbox" value="${opt}" data-field="${fieldKey}" ${checked ? 'checked' : ''} style="accent-color:#1f4b6e; width:13px; height:13px; cursor:pointer; flex-shrink:0;">
+                            ${opt}
+                        </label>`;
+                    });
+
+                    html += `</div></div>`;
+                });
+
+                html += '</div>';
+                filterGrid.innerHTML = html;
+
+                if (searchTitle) searchTitle.value = savedTitle;
+                if (searchAuthor) searchAuthor.value = savedAuthor;
+            }
+
+            function getFilterOptions(fieldKey) {
+                // 如果是 chapters 字段，只使用 OPTIONS 中预定义的选项，不从 BOOKS 中提取
+                if (fieldKey === 'chapters') {
+                    return OPTIONS.chapters || [];
+                }
+                
+                // 其他字段：从 BOOKS 中提取 + 预定义选项合并
+                const allValues = BOOKS.flatMap(book => {
+                    if (fieldKey === 'tags') return book.tags;
+                    if (fieldKey === 'platform') return book.platform;
+                    return [book[fieldKey]];
+                });
+                const preset = OPTIONS[fieldKey] || [];
+                const combined = [...new Set([...allValues, ...preset])];
+                return combined.filter(v => v != null && v !== '').sort();
+            }
+
+            function collectFilterFromPanel() {
+                FILTER_FIELDS.forEach(field => { currentFilter[field] = new Set(); });
+                document.querySelectorAll('#filterGrid input[type="checkbox"]').forEach(cb => {
+                    if (cb.checked) {
+                        const field = cb.dataset.field;
+                        if (currentFilter[field]) currentFilter[field].add(cb.value);
+                    }
+                });
+            }
+
+            function applyFilterAndRender() {
+                collectFilterFromPanel();
+                currentPage = 1;
+                renderBooks(currentFilter);
+            }
+
+            function resetFilter() {
+                document.querySelectorAll('#filterGrid input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+                FILTER_FIELDS.forEach(field => { currentFilter[field] = new Set(); });
+                currentPage = 1;
+                renderBooks(currentFilter);
+                filterIndicator.textContent = `(${BOOKS.length})`;
+                const btnIndicator = filterToggleBtn.querySelector('#filterIndicator');
+                if (btnIndicator) {
+                    btnIndicator.textContent = `(${BOOKS.length})`;
+                }
+            }
+
+                        // ================================================================
+            //  12. 添加行渲染
+            // ================================================================
+
+            function renderAddForm() {
+                addLinkData = {};
+                const container = document.getElementById('addFormContainer');
+
+                let html = `
+                    <div class="modal-field">
+                        <label>文名 *</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="text" id="addTitle" placeholder="请输入文名" style="flex:1;" />
+                            <span id="addDuplicateWarning" style="display:none; color:#b91c1c; font-size:0.75rem; white-space:nowrap;">⚠️ 已存在</span>
+                            <span id="addTitleAvailable" style="display:none; color:#065f46; font-size:0.75rem; white-space:nowrap;">✅ 可用</span>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>作者 *</label>
+                        <input type="text" id="addAuthor" placeholder="请输入作者" />
+                    </div>
+                    <div class="modal-field">
+                        <label>平台 *（可多选）</label>
+                        <div class="tag-select-container" id="addPlatformContainer"></div>
+                    </div>
+                    <div class="modal-field">
+                        <label>更新状态 *</label>
+                        <select id="addStatus"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>结局 *</label>
+                        <select id="addEnding"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>属性 *</label>
+                        <select id="addAttributes"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>🚗 *</label>
+                        <select id="addCar"><option value="">请选择</option></select>
+                    </div>
+                    <div class="modal-field">
+                        <label>章节 *</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                            <select id="addChaptersType" style="flex:0 0 auto; min-width:100px;">
+                                <option value="">请选择</option>
+                                ${OPTIONS.chapters.map(c => `<option value="${c}">${c}</option>`).join('')}
+                            </select>
+                            <span id="addChaptersNumberWrapper" style="display:none; align-items:center; gap:0.3rem;">
+                                <input type="number" id="addChaptersNumber" placeholder="章节数" min="1" max="999" style="width:80px; padding:0.3rem 0.5rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white;" />
+                                <span style="font-size:0.9rem; color:#475569;">章</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>链接（可添加多个平台链接）</label>
+                        <div id="addLinkContainer">
+                            <div style="display:flex; flex-wrap:wrap; gap:0.3rem; margin-bottom:0.3rem;">
+                                ${OPTIONS.platform.map(p => `
+                                    <label style="display:inline-flex; align-items:center; gap:0.15rem; font-weight:400; font-size:0.8rem; background:#f1f4f9; padding:0.05rem 0.4rem 0.05rem 0.3rem; border-radius:30px; cursor:pointer; border:1px solid transparent;">
+                                        <input type="checkbox" class="add-link-platform" value="${p}" style="accent-color:#1f4b6e; width:13px; height:13px; cursor:pointer;">
+                                        ${p}
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <div id="addLinkInputs" style="display:flex; flex-direction:column; gap:0.3rem;"></div>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>Tag（多选）</label>
+                        <div class="tag-select-container" id="addTagsContainer"></div>
+                    </div>
+                `;
+                container.innerHTML = html;
+
+                const platformContainer = document.getElementById('addPlatformContainer');
+                platformContainer.innerHTML = '';
+                OPTIONS.platform.forEach(platform => {
+                    const label = document.createElement('label');
+                    label.innerHTML = `<input type="checkbox" value="${platform}"> ${platform}`;
+                    platformContainer.appendChild(label);
+                });
+
+                const statusSel = document.getElementById('addStatus');
+                statusSel.innerHTML = '<option value="">请选择</option>';
+                OPTIONS.status.forEach(s => { statusSel.innerHTML += `<option value="${s}">${s}</option>`; });
+
+                const endSel = document.getElementById('addEnding');
+                endSel.innerHTML = '<option value="">请选择</option>';
+                OPTIONS.ending.forEach(e => { endSel.innerHTML += `<option value="${e}">${e}</option>`; });
+
+                const attrSel = document.getElementById('addAttributes');
+                attrSel.innerHTML = '<option value="">请选择</option>';
+                OPTIONS.attributes.forEach(a => { attrSel.innerHTML += `<option value="${a}">${a}</option>`; });
+
+                const carSel = document.getElementById('addCar');
+                carSel.innerHTML = '<option value="">请选择</option>';
+                OPTIONS.car.forEach(c => { carSel.innerHTML += `<option value="${c}">${c}</option>`; });
+
+                const tagContainer = document.getElementById('addTagsContainer');
+                tagContainer.innerHTML = '';
+                OPTIONS.tags.forEach(tag => {
+                    const label = document.createElement('label');
+                    label.innerHTML = `<input type="checkbox" value="${tag}"> ${tag}`;
+                    tagContainer.appendChild(label);
+                });
+
+                // ===== 添加链接平台选择交互 =====
+                const addLinkInputs = document.getElementById('addLinkInputs');
+                const addLinkPlatformCheckboxes = document.querySelectorAll('.add-link-platform');
+
+
+                function updateAddLinkInputs() {
+                    const checkedPlatforms = Array.from(addLinkPlatformCheckboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value);
+                    
+                    // 移除已取消选择的平台的输入框
+                    const existingWrappers = addLinkInputs.querySelectorAll('.add-link-wrapper');
+                    existingWrappers.forEach(w => {
+                        const platform = w.dataset.platform;
+                        if (!checkedPlatforms.includes(platform)) {
+                            w.remove();
+                            delete addLinkData[platform];
+                        }
+                    });
+                    
+                    // 为新选择的平台添加输入框
+                    checkedPlatforms.forEach(platform => {
+                        if (!addLinkData[platform]) {
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'add-link-wrapper';
+                            wrapper.dataset.platform = platform;
+                            wrapper.style.cssText = 'display:flex; align-items:center; gap:0.3rem; margin-bottom:0.15rem;';
+                            
+                            const label = document.createElement('span');
+                            label.textContent = platform + ': ';
+                            label.style.cssText = 'font-size:0.8rem; font-weight:500; color:#475569; min-width:50px;';
+                            
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.placeholder = '请输入 ' + platform + ' 链接';
+                            input.style.cssText = 'flex:1; padding:0.3rem 0.6rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.85rem; background:white; outline:none;';
+                            input.dataset.platform = platform;
+                            
+                            wrapper.appendChild(label);
+                            wrapper.appendChild(input);
+                            addLinkInputs.appendChild(wrapper);
+                            addLinkData[platform] = wrapper;
+                        }
+                    });
+                }
+
+                addLinkPlatformCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', updateAddLinkInputs);
+                });
+
+                const chaptersType = document.getElementById('addChaptersType');
+                const chaptersNumberWrapper = document.getElementById('addChaptersNumberWrapper');
+                const chaptersNumber = document.getElementById('addChaptersNumber');
+
+                chaptersType.addEventListener('change', function() {
+                    if (this.value === '多篇章') {
+                        chaptersNumberWrapper.style.display = 'flex';
+                        chaptersNumber.focus();
+                    } else {
+                        chaptersNumberWrapper.style.display = 'none';
+                        chaptersNumber.value = '';
+                    }
+                });
+
+                const titleInput = document.getElementById('addTitle');
+                const dupWarning = document.getElementById('addDuplicateWarning');
+                const titleAvailable = document.getElementById('addTitleAvailable');
+                const saveBtn = document.getElementById('addModalSaveBtn');
+
+                if (saveBtn) saveBtn.disabled = false;
+
+                if (titleInput) {
+                    titleInput.addEventListener('input', function() {
+                        const title = this.value.trim();
+
+                        if (title === '') {
+                            dupWarning.style.display = 'none';
+                            titleAvailable.style.display = 'none';
+                            this.style.borderColor = '#d0d9e6';
+                            this.style.boxShadow = 'none';
+                            if (saveBtn) saveBtn.disabled = false;
+                            return;
+                        }
+
+                        const isDuplicate = BOOKS.some(book =>
+                            book.title.trim().toLowerCase() === title.toLowerCase()
+                        );
+
+                        if (isDuplicate) {
+                            dupWarning.style.display = 'inline';
+                            titleAvailable.style.display = 'none';
+                            this.style.borderColor = '#b91c1c';
+                            this.style.boxShadow = '0 0 0 3px rgba(185, 28, 28, 0.15)';
+                            if (saveBtn) saveBtn.disabled = true;
+                        } else {
+                            dupWarning.style.display = 'none';
+                            titleAvailable.style.display = 'inline';
+                            this.style.borderColor = '#065f46';
+                            this.style.boxShadow = '0 0 0 3px rgba(6, 95, 70, 0.15)';
+                            if (saveBtn) saveBtn.disabled = false;
+                        }
+                    });
+                }
+            }
+
+            function openAddModal() {
+                renderAddForm();
+                document.getElementById('addModal').classList.add('active');
+            }
+
+            function closeAddModal() {
+                document.getElementById('addModal').classList.remove('active');
+            }
+
+            // ================================================================
+            //  13. 增删改操作
+            // ================================================================
+
+            async function deleteBook(id) {
+                const success = await deleteBookFromDB(id);
+                if (success) {
+                    BOOKS = BOOKS.filter(b => b.id !== id);
+                    // 如果已读列表中有该文章，移除
+                    const idx = userReads.indexOf(id);
+                    if (idx !== -1) {
+                        userReads.splice(idx, 1);
+                        await saveUserReads();
+                    }
+                    renderFilterPanel();
+                    renderBooks(currentFilter);
+                    showToast('删除成功', 'success');
+                }
+            }
+
+            function openEditModal(id) {
+                editLinkData = {};
+                const book = BOOKS.find(b => b.id === id);
+                if (!book) return;
+                editingBookId = id;
+                const container = editFormContainer;
+
+                let chaptersType = '一发完';
+                let chaptersNumber = '';
+                if (book.chapters && book.chapters !== '一发完' && book.chapters !== '') {
+                    const match = book.chapters.match(/^(\d+)章$/);
+                    if (match) {
+                        chaptersType = '多篇章';
+                        chaptersNumber = match[1];
+                    } else {
+                        chaptersType = book.chapters;
+                    }
+                }
+
+                let html = `
+                    <div class="modal-field"><label>文名</label><input type="text" id="editTitle" value="${book.title || ''}"></div>
+                    <div class="modal-field"><label>作者</label><input type="text" id="editAuthor" value="${book.author || ''}"></div>
+                    <div class="modal-field"><label>平台（可多选）</label><div class="tag-select-container" id="editPlatformContainer">`;
+                    OPTIONS.platform.forEach(p => {
+                        const checked = (Array.isArray(book.platform) && book.platform.includes(p)) || (book.platform === p) ? 'checked' : '';
+                        html += `<label><input type="checkbox" value="${p}" ${checked}> ${p}</label>`;
+                    });
+                    html += `</div></div>
+                    <div class="modal-field"><label>Tag (多选)</label><div class="tag-select-container" id="editTagsContainer">`;
+                OPTIONS.tags.forEach(tag => {
+                    const checked = (book.tags || []).includes(tag) ? 'checked' : '';
+                    html += `<label><input type="checkbox" value="${tag}" ${checked}> ${tag}</label>`;
+                });
+                html += `</div></div>
+                    <div class="modal-field"><label>更新状态</label><select id="editStatus">`;
+                OPTIONS.status.forEach(s => {
+                    html += `<option value="${s}" ${s === book.status ? 'selected' : ''}>${s}</option>`;
+                });
+                html += `</select></div>
+                    <div class="modal-field"><label>结局</label><select id="editEnding">`;
+                OPTIONS.ending.forEach(e => {
+                    html += `<option value="${e}" ${e === book.ending ? 'selected' : ''}>${e}</option>`;
+                });
+                html += `</select></div>
+                    <div class="modal-field"><label>属性</label><select id="editAttributes">`;
+                OPTIONS.attributes.forEach(a => {
+                    html += `<option value="${a}" ${a === book.attributes ? 'selected' : ''}>${a}</option>`;
+                });
+                html += `</select></div>
+                    <div class="modal-field"><label>🚗</label><select id="editCar">`;
+                OPTIONS.car.forEach(c => {
+                    html += `<option value="${c}" ${c === book.car ? 'selected' : ''}>${c}</option>`;
+                });
+                html += `</select></div>
+                    <div class="modal-field"><label>章节</label>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                            <select id="editChaptersType" style="flex:0 0 auto; min-width:100px;">
+                                ${OPTIONS.chapters.map(c => `<option value="${c}" ${c === chaptersType ? 'selected' : ''}>${c}</option>`).join('')}
+                            </select>
+                            <span id="editChaptersNumberWrapper" style="display:${chaptersType === '多篇章' ? 'flex' : 'none'}; align-items:center; gap:0.3rem;">
+                                <input type="number" id="editChaptersNumber" placeholder="章节数" min="1" max="999" value="${chaptersNumber}" style="width:80px; padding:0.3rem 0.5rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.9rem; background:white;" />
+                                <span style="font-size:0.9rem; color:#475569;">章</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>链接（可添加多个平台链接）</label>
+                        <div id="editLinkContainer">
+                            <div style="display:flex; flex-wrap:wrap; gap:0.3rem; margin-bottom:0.3rem;">
+                                ${OPTIONS.platform.map(p => {
+                                    const hasLink = Array.isArray(book.link) && book.link.some(l => l.platform === p);
+                                    return `<label style="display:inline-flex; align-items:center; gap:0.15rem; font-weight:400; font-size:0.8rem; background:#f1f4f9; padding:0.05rem 0.4rem 0.05rem 0.3rem; border-radius:30px; cursor:pointer; border:1px solid transparent;">
+                                        <input type="checkbox" class="edit-link-platform" value="${p}" ${hasLink ? 'checked' : ''} style="accent-color:#1f4b6e; width:13px; height:13px; cursor:pointer;">
+                                        ${p}
+                                    </label>`;
+                                }).join('')}
+                            </div>
+                            <div id="editLinkInputs" style="display:flex; flex-direction:column; gap:0.3rem;"></div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+
+                const editChaptersType = document.getElementById('editChaptersType');
+                const editChaptersNumberWrapper = document.getElementById('editChaptersNumberWrapper');
+
+                editChaptersType.addEventListener('change', function() {
+                    if (this.value === '多篇章') {
+                        editChaptersNumberWrapper.style.display = 'flex';
+                        document.getElementById('editChaptersNumber').focus();
+                    } else {
+                        editChaptersNumberWrapper.style.display = 'none';
+                        document.getElementById('editChaptersNumber').value = '';
+                    }
+                });
+
+                // ===== 编辑链接平台选择交互 =====
+                const editLinkInputs = document.getElementById('editLinkInputs');
+                const editLinkPlatformCheckboxes = document.querySelectorAll('.edit-link-platform');
+
+                // 初始化已有的链接数据到 editLinkData
+                if (Array.isArray(book.link) && book.link.length > 0) {
+                    book.link.forEach(linkItem => {
+                        if (linkItem && linkItem.platform) {
+                            // 存储平台和对应的URL，用于后续填充
+                            editLinkData[linkItem.platform] = linkItem.url;
+                        }
+                    });
+                }
+
+                function updateEditLinkInputs() {
+                    const checkedPlatforms = Array.from(editLinkPlatformCheckboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value);
+                    
+                    // 移除已取消选择的平台的输入框
+                    const existingWrappers = editLinkInputs.querySelectorAll('.edit-link-wrapper');
+                    existingWrappers.forEach(w => {
+                        const platform = w.dataset.platform;
+                        if (!checkedPlatforms.includes(platform)) {
+                            w.remove();
+                            // 如果移除了，从 editLinkData 中删除
+                            delete editLinkData[platform];
+                        }
+                    });
+                    
+                    // 为新选择的平台添加输入框
+                    checkedPlatforms.forEach(platform => {
+                        // 检查是否已经存在该平台的输入框
+                        const existingWrapper = editLinkInputs.querySelector(`.edit-link-wrapper[data-platform="${platform}"]`);
+                        if (!existingWrapper) {
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'edit-link-wrapper';
+                            wrapper.dataset.platform = platform;
+                            wrapper.style.cssText = 'display:flex; align-items:center; gap:0.3rem; margin-bottom:0.15rem;';
+                            
+                            const label = document.createElement('span');
+                            label.textContent = platform + ': ';
+                            label.style.cssText = 'font-size:0.8rem; font-weight:500; color:#475569; min-width:50px;';
+                            
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.placeholder = '请输入 ' + platform + ' 链接';
+                            input.style.cssText = 'flex:1; padding:0.3rem 0.6rem; border:1px solid #d0d9e6; border-radius:30px; font-size:0.85rem; background:white; outline:none;';
+                            input.dataset.platform = platform;
+                            
+                            // 如果 editLinkData 中有该平台的数据，填充
+                            if (editLinkData[platform] && typeof editLinkData[platform] === 'string') {
+                                input.value = editLinkData[platform];
+                            }
+                            
+                            wrapper.appendChild(label);
+                            wrapper.appendChild(input);
+                            editLinkInputs.appendChild(wrapper);
+                        }
+                    });
+                    
+                    // 更新所有输入框的值（从 editLinkData 恢复）
+                    const allWrappers = editLinkInputs.querySelectorAll('.edit-link-wrapper');
+                    allWrappers.forEach(w => {
+                        const platform = w.dataset.platform;
+                        const input = w.querySelector('input');
+                        if (input && editLinkData[platform] && typeof editLinkData[platform] === 'string') {
+                            input.value = editLinkData[platform];
+                        }
+                    });
+                }
+
+                // 先根据已有的数据勾选复选框
+                if (Array.isArray(book.link) && book.link.length > 0) {
+                    book.link.forEach(linkItem => {
+                        if (linkItem && linkItem.platform) {
+                            const cb = document.querySelector(`.edit-link-platform[value="${linkItem.platform}"]`);
+                            if (cb) cb.checked = true;
+                            // 存储URL到 editLinkData
+                            editLinkData[linkItem.platform] = linkItem.url || '';
+                        }
+                    });
+                }
+
+                editLinkPlatformCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        // 更新 editLinkData
+                        const platform = this.value;
+                        if (this.checked) {
+                            // 如果勾选，但 editLinkData 中没有数据，初始化
+                            if (!editLinkData[platform]) {
+                                editLinkData[platform] = '';
+                            }
+                        } else {
+                            // 如果取消勾选，从 editLinkData 中删除
+                            delete editLinkData[platform];
+                        }
+                        updateEditLinkInputs();
+                    });
+                });
+
+                // 初始化编辑链接输入框
+                setTimeout(updateEditLinkInputs, 50);
+
+                editModal.classList.add('active');
+            }
+
+            async function saveEditModal() {
+                const id = editingBookId;
+                if (id === null) return;
+                const book = BOOKS.find(b => b.id === id);
+                if (!book) return;
+
+                const chaptersType = document.getElementById('editChaptersType').value;
+                let chapters = chaptersType;
+                if (chaptersType === '多篇章') {
+                    const chaptersNumber = document.getElementById('editChaptersNumber').value.trim();
+                    if (!chaptersNumber || parseInt(chaptersNumber) < 1) {
+                        showToast('请输入有效的章节数', 'error');
+                        return;
+                    }
+                    chapters = chaptersNumber + '章';
+                }
+
+                book.title = document.getElementById('editTitle').value.trim() || book.title;
+                book.author = document.getElementById('editAuthor').value.trim() || book.author;
+                const platformChecks = document.querySelectorAll('#editPlatformContainer input[type="checkbox"]:checked');
+                book.platform = Array.from(platformChecks).map(cb => cb.value);
+                const tagChecks = document.querySelectorAll('#editTagsContainer input[type="checkbox"]:checked');
+                book.tags = Array.from(tagChecks).map(cb => cb.value);
+                book.status = document.getElementById('editStatus').value;
+                book.ending = document.getElementById('editEnding').value;
+                book.attributes = document.getElementById('editAttributes').value;
+                book.car = document.getElementById('editCar').value;
+                book.chapters = chapters;
+                // 收集编辑后的链接数据
+                const editLinkDataArray = [];
+                const editLinkInputs = document.getElementById('editLinkInputs');
+                if (editLinkInputs) {
+                    const wrappers = editLinkInputs.querySelectorAll('.edit-link-wrapper');
+                    wrappers.forEach(wrapper => {
+                        const platform = wrapper.dataset.platform;
+                        const input = wrapper.querySelector('input');
+                        if (input && input.value.trim()) {
+                            editLinkDataArray.push({
+                                platform: platform,
+                                url: input.value.trim()
+                            });
+                        }
+                    });
+                }
+                book.link = editLinkDataArray;
+
+                const success = await saveBooksToDB();
+                if (success) {
+                    closeEditModal();
+                    renderFilterPanel();
+                    renderBooks(currentFilter);
+                    showToast('保存成功', 'success');
+                }
+            }
+
+            function closeEditModal() {
+                editModal.classList.remove('active');
+                editingBookId = null;
+            }
+
+            // ================================================================
+            //  14. 添加图书
+            // ================================================================
+
+            async function addBookFromModal() {
+                const title = document.getElementById('addTitle').value.trim();
+                const author = document.getElementById('addAuthor').value.trim();
+                const platformChecks = document.querySelectorAll('#addPlatformContainer input[type="checkbox"]:checked');
+                const platform = Array.from(platformChecks).map(cb => cb.value);
+                const status = document.getElementById('addStatus').value;
+                const ending = document.getElementById('addEnding').value;
+                const attributes = document.getElementById('addAttributes').value;
+                const car = document.getElementById('addCar').value;
+                const chaptersType = document.getElementById('addChaptersType').value;
+                const chaptersNumber = document.getElementById('addChaptersNumber').value.trim();
+                // 收集所有平台链接
+                const linkData = [];
+                const addLinkInputs = document.getElementById('addLinkInputs');
+                if (addLinkInputs) {
+                    const wrappers = addLinkInputs.querySelectorAll('.add-link-wrapper');
+                    wrappers.forEach(wrapper => {
+                        const platform = wrapper.dataset.platform;
+                        const input = wrapper.querySelector('input');
+                        if (input && input.value.trim()) {
+                            linkData.push({
+                                platform: platform,
+                                url: input.value.trim()
+                            });
+                        }
+                    });
+                }
+                // 如果没有任何链接，至少保留一个空数组
+                const link = linkData;
+                const tagChecks = document.querySelectorAll('#addTagsContainer input[type="checkbox"]:checked');
+                const tags = Array.from(tagChecks).map(cb => cb.value);
+
+                if (!title || !author || platform.length === 0 || !status || !ending || !attributes || !car || !chaptersType) {
+                    showToast('请完整填写所有必填项', 'error');
+                    return;
+                }
+
+                let chapters = chaptersType;
+                if (chaptersType === '多篇章') {
+                    if (!chaptersNumber || parseInt(chaptersNumber) < 1) {
+                        showToast('请输入有效的章节数', 'error');
+                        return;
+                    }
+                    chapters = chaptersNumber + '章';
+                }
+
+                const duplicate = BOOKS.some(book =>
+                    book.title.trim().toLowerCase() === title.toLowerCase()
+                );
+                if (duplicate) {
+                    showToast('⚠️ 文章 "' + title + '" 已存在，请勿重复添加！', 'error');
+                    return;
+                }
+
+                const newBook = {
+                    id: nextId++,
+                    title,
+                    author,
+                    platform,
+                    tags,
+                    status,
+                    ending,
+                    attributes,
+                    car,
+                    chapters,
+                    link: linkData,  // 改为数组
+                    sort_order: BOOKS.length + 1    
+                };
+
+                const { error } = await supabaseClient
+                    .from('books')
+                    .insert([newBook]);
+
+                if (error) {
+                    showToast('添加失败: ' + error.message, 'error');
+                    return;
+                }
+
+                BOOKS.push(newBook);
+                closeAddModal();
+                renderFilterPanel();
+                renderBooks(currentFilter);
+                showToast('添加成功', 'success');
+            }
+
+            // ================================================================
+            //  15. 管理选项
+            // ================================================================
+
+            function renderOptionsManager() {
+                const container = optionsContainer;
+                let html = '';
+                const groups = [
+                    { key: 'platform', label: '平台' },
+                    { key: 'status', label: '更新状态' },
+                    { key: 'ending', label: '结局' },
+                    { key: 'attributes', label: '属性' },
+                    { key: 'car', label: '🚗' },
+                    { key: 'chapters', label: '章节' },
+                    { key: 'tags', label: 'Tag' }
+                ];
+
+                groups.forEach(g => {
+                    const items = OPTIONS[g.key] || [];
+                    html += `<div class="option-group" data-group="${g.key}">
+                            <div class="group-title">${g.label}</div>
+                            <div class="option-tag-list" id="optList_${g.key}">`;
+                    items.forEach(item => {
+                        html +=
+                            `<span class="option-tag-item">${item} <button class="del-opt" data-group="${g.key}" data-value="${item}">×</button></span>`;
+                    });
+                    html += `</div>
+                            <div class="option-add-row">
+                                <input type="text" placeholder="添加新选项" class="opt-add-input" data-group="${g.key}">
+                                <button class="btn-sm opt-add-btn" data-group="${g.key}">添加</button>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = html;
+
+                container.querySelectorAll('.del-opt').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const group = this.dataset.group;
+                        const value = this.dataset.value;
+                        if (OPTIONS[group]) {
+                            OPTIONS[group] = OPTIONS[group].filter(v => v !== value);
+                            renderOptionsManager();
+                            renderFilterPanel();
+                            renderBooks(currentFilter);
+                        }
+                    });
+                });
+
+                container.querySelectorAll('.opt-add-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const group = this.dataset.group;
+                        const input = this.parentElement.querySelector('.opt-add-input');
+                        const val = input.value.trim();
+                        if (val && OPTIONS[group] && !OPTIONS[group].includes(val)) {
+                            OPTIONS[group].push(val);
+                            renderOptionsManager();
+                            renderFilterPanel();
+                            renderBooks(currentFilter);
+                        } else if (!val) {
+                            showToast('请输入内容', 'error');
+                        } else {
+                            showToast('选项已存在', 'error');
+                        }
+                    });
+                });
+            }
+
+            function openOptionsModal() {
+                OPTIONS_BACKUP = JSON.parse(JSON.stringify(OPTIONS));
+                renderOptionsManager();
+                optionsModal.classList.add('active');
+            }
+
+            function closeOptionsModal() {
+                optionsModal.classList.remove('active');
+                // 如果有点击取消的标记，恢复备份
+                if (OPTIONS_BACKUP) {
+                    OPTIONS = JSON.parse(JSON.stringify(OPTIONS_BACKUP));
+                    OPTIONS_BACKUP = null;
+                    // 重新渲染相关界面
+                    renderFilterPanel();
+                    renderAddRowSelectors();
+                    renderBooks(currentFilter);
+                }
+            }
+
+            async function saveOptionsAndClose() {
+                const success = await saveOptionsToDB();
+                if (success) {
+                    closeOptionsModal();
+                    showToast('选项已保存', 'success');
+                }
+            }
+
+            // ================================================================
+            //  16. 描述保存
+            // ================================================================
+
+            async function saveDescription() {
+                const text = descriptionText.innerText.trim();
+                description = text || '（空）';
+                await saveDescriptionToDB(description);
+            }
+
+            // ================================================================
+            //  17. UI 切换
+            // ================================================================
+
+            function toggleFilterPanel() {
+                filterPanel.classList.toggle('open');
+            }
+
+            // ================================================================
+            //  18. 初始化
+            // ================================================================
+
+            async function init() {
+                await loadOptionsFromDB();
+                await loadBooksFromDB();
+                await loadDescriptionFromDB();
+
+                // 恢复用户会话
+                if (loadUserSession()) {
+                    await loadUserReads();
+                }
+
+                // 恢复管理员会话
+                const adminSession = loadAdminSession();
+                if (adminSession && adminSession.admin) {
+                    isAdmin = true;
+                }
+
+                renderTableHeader();
+                renderFilterPanel();
+                renderBooks(currentFilter);
+                updateUIForUser();
+                updateUIForAdmin();
+
+                // ---------- 事件绑定 ----------
+                loginBtn.addEventListener('click', () => {
+                    loginModal.classList.add('active');
+                    loginError.style.display = 'none';
+                    loginUsername.value = '';
+                    setTimeout(() => loginUsername.focus(), 100);
+                });
+
+                adminLoginBtn.addEventListener('click', function() {
+                    if (isAdmin) {
+                        // 如果已经是管理员，点击退出管理员
+                        isAdmin = false;
+                        clearAdminSession();
+                        updateUIForAdmin();
+                        showToast('管理员已退出', 'success');
+                    } else {
+                        // 打开登录模态框，让用户选择管理员登录
+                        loginModal.classList.add('active');
+                        loginError.style.display = 'none';
+                        loginUsername.value = '';
+                    }
+                });
+
+                logoutBtn.addEventListener('click', handleLogout);
+
+                loginConfirmBtn.addEventListener('click', handleUserLogin);
+                loginAdminBtn.addEventListener('click', function() {
+                    loginModal.classList.remove('active');
+                    handleAdminLogin();
+                });
+
+                loginCancelBtn.addEventListener('click', () => {
+                    loginModal.classList.remove('active');
+                    loginError.style.display = 'none';
+                });
+                loginModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        loginModal.classList.remove('active');
+                        loginError.style.display = 'none';
+                    }
+                });
+                loginUsername.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') handleUserLogin();
+                });
+
+                loginPassword.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') handleUserLogin();
+                });
+
+                applyBtn.addEventListener('click', applyFilterAndRender);
+                resetBtn.addEventListener('click', resetFilter);
+                filterToggleBtn.addEventListener('click', toggleFilterPanel);
+                document.getElementById('closeFilterPanelBtn').addEventListener('click', function() {
+                    filterPanel.classList.remove('open');
+                });
+
+                // ===== 登录/注册模式切换 =====
+                loginTabBtn.addEventListener('click', function() {
+                    isLoginMode = true;
+                    loginModalTitle.textContent = '🔑 登录';
+                    loginConfirmBtn.textContent = '登录';
+                    loginHint.textContent = '输入用户名和密码登录';
+                    loginError.style.display = 'none';
+                    usernameCheckResult.style.display = 'none';
+                    this.className = 'btn btn-primary';
+                    this.style.cssText = 'flex:1; border-radius:30px; padding:0.3rem 0.5rem; font-size:0.8rem;';
+                    registerTabBtn.className = 'btn btn-secondary';
+                    registerTabBtn.style.cssText = 'flex:1; border-radius:30px; padding:0.3rem 0.5rem; font-size:0.8rem;';
+                    // 重新检测用户名
+                    if (loginUsername.value.trim()) {
+                        loginUsername.dispatchEvent(new Event('input'));
+                    }
+                });
+
+                registerTabBtn.addEventListener('click', function() {
+                    isLoginMode = false;
+                    loginModalTitle.textContent = '📝 注册';
+                    loginConfirmBtn.textContent = '注册';
+                    loginHint.textContent = '输入用户名和密码注册新账号';
+                    loginError.style.display = 'none';
+                    usernameCheckResult.style.display = 'none';
+                    this.className = 'btn btn-primary';
+                    this.style.cssText = 'flex:1; border-radius:30px; padding:0.3rem 0.5rem; font-size:0.8rem;';
+                    loginTabBtn.className = 'btn btn-secondary';
+                    loginTabBtn.style.cssText = 'flex:1; border-radius:30px; padding:0.3rem 0.5rem; font-size:0.8rem;';
+                    // 重新检测用户名
+                    if (loginUsername.value.trim()) {
+                        loginUsername.dispatchEvent(new Event('input'));
+                    }
+                });
+
+                // 选项卡切换
+                tabAll.addEventListener('click', function() {
+                    currentTab = 'all';
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPage = 1;
+                    renderBooks(currentFilter);
+                });
+
+                tabRead.addEventListener('click', function() {
+                    if (!currentUser) {
+                        showToast('请先登录查看已读文章', 'error');
+                        return;
+                    }
+                    currentTab = 'read';
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPage = 1;
+                    renderBooks(currentFilter);
+                });
+
+                tabWant.addEventListener('click', function() {
+                    if (!currentUser) {
+                        showToast('请先登录查看想看文章', 'error');
+                        return;
+                    }
+                    currentTab = 'want';
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPage = 1;
+                    renderBooks(currentFilter);
+                });
+
+                // ===== 只看未读开关 =====
+                if (showUnreadOnly) {
+                    showUnreadOnly.addEventListener('change', function() {
+                        showUnreadOnlyState = this.checked;
+                        currentPage = 1;
+                        renderBooks(currentFilter);
+                    });
+                }
+
+                toggleAddRowBtn.addEventListener('click', openAddModal);
+
+                descriptionText.addEventListener('blur', saveDescription);
+                descriptionText.addEventListener('input', function() {
+                    clearTimeout(window._descSaveTimer);
+                    window._descSaveTimer = setTimeout(saveDescription, 1000);
+                });
+
+                modalCancelBtn.addEventListener('click', closeEditModal);
+                modalSaveBtn.addEventListener('click', saveEditModal);
+                editModal.addEventListener('click', function(e) {
+                    if (e.target === editModal) closeEditModal();
+                });
+
+                manageOptionsBtn.addEventListener('click', openOptionsModal);
+                optionsCancelBtn.addEventListener('click', function() {
+                    // 取消时恢复备份
+                    if (OPTIONS_BACKUP) {
+                        OPTIONS = JSON.parse(JSON.stringify(OPTIONS_BACKUP));
+                        OPTIONS_BACKUP = null;
+                        // 重新渲染相关界面
+                        renderFilterPanel();
+                        renderAddRowSelectors();
+                        renderBooks(currentFilter);
+                    }
+                    optionsModal.classList.remove('active');
+                });
+                optionsSaveBtn.addEventListener('click', function() {
+                    // 保存时清除备份，确认修改
+                    OPTIONS_BACKUP = null;
+                    saveOptionsAndClose();
+                });
+                optionsModal.addEventListener('click', function(e) {
+                    if (e.target === optionsModal) closeOptionsModal();
+                });
+
+                addModalCancelBtn.addEventListener('click', closeAddModal);
+                addModalSaveBtn.addEventListener('click', addBookFromModal);
+                addModal.addEventListener('click', function(e) {
+                    if (e.target === this) closeAddModal();
+                });
+
+                // 搜索框事件
+                if (searchTitle) {
+                    searchTitle.addEventListener('input', function() {
+                        applyFilterAndRender();
+                    });
+                    searchTitle.addEventListener('focus', function() {
+                        this.select();
+                    });
+                }
+
+                if (searchAuthor) {
+                    searchAuthor.addEventListener('input', function() {
+                        applyFilterAndRender();
+                    });
+                    searchAuthor.addEventListener('focus', function() {
+                        this.select();
+                    });
+                }
+
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', function() {
+                        if (searchTitle) searchTitle.value = '';
+                        if (searchAuthor) searchAuthor.value = '';
+                        applyFilterAndRender();
+                    });
+                }
+
+                filterPanel.classList.remove('open');
+                filterToggleBtn.innerHTML = '<span>⚙️</span> 筛选 <span id="filterIndicator">(' + BOOKS.length +
+                    ')</span>';
+                const ind = document.getElementById('filterIndicator');
+                if (ind) ind.textContent = `(${BOOKS.length})`;
+
+                descriptionText.addEventListener('input', function() {
+                    clearTimeout(window._descSaveTimer);
+                    window._descSaveTimer = setTimeout(saveDescription, 1000);
+                });
+
+                // ===== 描述区展开/收起 =====
+                if (descToggleBtn && descText) {
+                    descToggleBtn.addEventListener('click', function() {
+                        isDescExpanded = !isDescExpanded;
+                        descText.classList.toggle('expanded', isDescExpanded);
+                        this.textContent = isDescExpanded ? '📖 收起' : '📖 展开';
+                    });
+                }
+
+                console.log('✅ 图书馆管理系统初始化完成');
+                console.log(`📚 共加载 ${BOOKS.length} 篇文章`);
+                console.log('🔑 管理员密码: zmyj210602');
+                if (currentUser) {
+                    console.log(`👤 当前用户: ${currentUser.username}`);
+                    console.log(`📖 已读: ${userReads.length} 篇`);
+                }
+            }
+
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                init();
+            } else {
+                document.addEventListener('DOMContentLoaded', init);
+            }
+
+        })();
+
+        
+    </script>
+
+</body>
+</html>
+
