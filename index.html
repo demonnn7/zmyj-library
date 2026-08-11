@@ -3266,22 +3266,23 @@
                 });
                 paginationDiv.appendChild(prevBtn);
             
-                const infoSpan = document.createElement('span');
-                infoSpan.textContent = `第 ${current} / ${totalPages} 页（共 ${total} 条）`;
-                infoSpan.style.cssText = 'font-size:0.7rem; color:#475569; margin:0 0.3rem; white-space:nowrap;';
-                paginationDiv.appendChild(infoSpan);
-            
-                const jumpWrapper = document.createElement('span');
-                jumpWrapper.style.cssText = 'display:flex; align-items:center; gap:0.2rem;';
-            
+                // ===== 修改：第（输入框）/ 总页数 页（共 总条数 条） =====
+                const pageInfoWrapper = document.createElement('span');
+                pageInfoWrapper.style.cssText = 'display:flex; align-items:center; gap:0.15rem; font-size:0.7rem; color:#475569;';
+                
+                const labelFirst = document.createElement('span');
+                labelFirst.textContent = '第';
+                labelFirst.style.cssText = 'font-size:0.7rem; color:#475569;';
+                pageInfoWrapper.appendChild(labelFirst);
+                
                 const jumpInput = document.createElement('input');
                 jumpInput.type = 'number';
                 jumpInput.min = 1;
                 jumpInput.max = totalPages;
                 jumpInput.value = current;
                 jumpInput.style.cssText = `
-                    width:36px; 
-                    padding:0.1rem 0.15rem; 
+                    width:32px; 
+                    padding:0.05rem 0.1rem; 
                     border:1px solid #d0d9e6; 
                     border-radius:30px; 
                     font-size:0.7rem; 
@@ -3307,13 +3308,19 @@
                         this.value = current;
                     }
                 });
-                jumpWrapper.appendChild(jumpInput);
-            
-                const jumpLabel = document.createElement('span');
-                jumpLabel.textContent = '页';
-                jumpLabel.style.cssText = 'font-size:0.7rem; color:#64748b;';
-                jumpWrapper.appendChild(jumpLabel);
-                paginationDiv.appendChild(jumpWrapper);
+                pageInfoWrapper.appendChild(jumpInput);
+                
+                const labelMiddle = document.createElement('span');
+                labelMiddle.textContent = '/';
+                labelMiddle.style.cssText = 'font-size:0.7rem; color:#475569;';
+                pageInfoWrapper.appendChild(labelMiddle);
+                
+                const labelTotal = document.createElement('span');
+                labelTotal.textContent = `${totalPages} 页（共 ${total} 条）`;
+                labelTotal.style.cssText = 'font-size:0.7rem; color:#475569;';
+                pageInfoWrapper.appendChild(labelTotal);
+                
+                paginationDiv.appendChild(pageInfoWrapper);
             
                 const nextBtn = document.createElement('button');
                 nextBtn.textContent = '下一页 ▶';
@@ -3342,6 +3349,7 @@
                 paginationDiv.appendChild(lastBtn);
             }
 
+            
             function removePagination() {
                 const existing = document.getElementById('paginationControls');
                 if (existing) {
