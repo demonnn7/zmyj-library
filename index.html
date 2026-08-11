@@ -3212,17 +3212,42 @@
                 const app = document.querySelector('.app');
                 
                 let paginationDiv = document.getElementById('paginationControls');
-                if (!paginationDiv) {
-                    paginationDiv = document.createElement('div');
-                    paginationDiv.id = 'paginationControls';
-                    if (tableContainer && tableContainer.parentNode) {
-                        tableContainer.parentNode.insertBefore(paginationDiv, tableContainer.nextSibling);
-                    } else {
-                        app.appendChild(paginationDiv);
+                const isMobile = window.innerWidth < 768;
+                
+                // ===== 如果分页控件已存在，只更新数据，不重建 =====
+                if (paginationDiv) {
+                    // 更新页码输入框的值
+                    const input = paginationDiv.querySelector('.page-jump-input');
+                    if (input) {
+                        input.value = current;
+                        input.max = totalPages;
+                        input.min = 1;
                     }
+                    // 更新总页码显示
+                    const totalLabel = paginationDiv.querySelector('.page-total-label');
+                    if (totalLabel) {
+                        totalLabel.textContent = `${totalPages} 页（共 ${total} 条）`;
+                    }
+                    // 更新按钮状态
+                    const firstBtn = paginationDiv.querySelector('.page-first-btn');
+                    const prevBtn = paginationDiv.querySelector('.page-prev-btn');
+                    const nextBtn = paginationDiv.querySelector('.page-next-btn');
+                    const lastBtn = paginationDiv.querySelector('.page-last-btn');
+                    if (firstBtn) firstBtn.disabled = current <= 1;
+                    if (prevBtn) prevBtn.disabled = current <= 1;
+                    if (nextBtn) nextBtn.disabled = current >= totalPages;
+                    if (lastBtn) lastBtn.disabled = current >= totalPages;
+                    return;
                 }
                 
-                const isMobile = window.innerWidth < 768;
+                // ===== 首次创建分页控件 =====
+                paginationDiv = document.createElement('div');
+                paginationDiv.id = 'paginationControls';
+                if (tableContainer && tableContainer.parentNode) {
+                    tableContainer.parentNode.insertBefore(paginationDiv, tableContainer.nextSibling);
+                } else {
+                    app.appendChild(paginationDiv);
+                }
                 
                 paginationDiv.style.cssText = `
                     display:flex; 
@@ -3240,12 +3265,12 @@
                     z-index: 10;
                     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
                 `;
-                paginationDiv.innerHTML = '';
             
+                // 首页按钮
                 const firstBtn = document.createElement('button');
+                firstBtn.className = 'page-first-btn';
                 firstBtn.textContent = '⏮ 首页';
-                firstBtn.className = 'btn btn-secondary';
-                firstBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'};`;
+                firstBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
                 firstBtn.disabled = current <= 1;
                 firstBtn.addEventListener('click', () => {
                     if (currentPage > 1) {
@@ -3255,10 +3280,11 @@
                 });
                 paginationDiv.appendChild(firstBtn);
                 
+                // 上一页按钮
                 const prevBtn = document.createElement('button');
+                prevBtn.className = 'page-prev-btn';
                 prevBtn.textContent = '◀ 上一页';
-                prevBtn.className = 'btn btn-secondary';
-                prevBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'};`;
+                prevBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
                 prevBtn.disabled = current <= 1;
                 prevBtn.addEventListener('click', () => {
                     if (currentPage > 1) {
@@ -3268,6 +3294,7 @@
                 });
                 paginationDiv.appendChild(prevBtn);
             
+                // 页码信息
                 const pageInfoWrapper = document.createElement('span');
                 pageInfoWrapper.style.cssText = `display:flex; align-items:center; gap:${isMobile ? '0.15rem' : '0.3rem'}; font-size:${isMobile ? '0.7rem' : '0.85rem'}; color:#475569;`;
                 
@@ -3277,6 +3304,7 @@
                 pageInfoWrapper.appendChild(labelFirst);
                 
                 const jumpInput = document.createElement('input');
+                jumpInput.className = 'page-jump-input';
                 jumpInput.type = 'number';
                 jumpInput.min = 1;
                 jumpInput.max = totalPages;
@@ -3293,7 +3321,6 @@
                     -webkit-appearance: none;
                 `;
                 
-                // ===== 修复：使用 change 事件，并在跳转时才触发页面更新 =====
                 jumpInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -3308,7 +3335,7 @@
                     }
                 });
                 
-                // ===== 移除 blur 事件中的页面跳转，只做简单的值修正 =====
+                // ===== 关键：blur 事件只修正值，不触发页面跳转 =====
                 jumpInput.addEventListener('blur', function() {
                     const val = parseInt(this.value);
                     if (isNaN(val) || val < 1 || val > totalPages) {
@@ -3324,17 +3351,18 @@
                 pageInfoWrapper.appendChild(labelMiddle);
                 
                 const labelTotal = document.createElement('span');
+                labelTotal.className = 'page-total-label';
                 labelTotal.textContent = `${totalPages} 页（共 ${total} 条）`;
                 labelTotal.style.cssText = `font-size:${isMobile ? '0.7rem' : '0.85rem'}; color:#475569;`;
                 pageInfoWrapper.appendChild(labelTotal);
                 
                 paginationDiv.appendChild(pageInfoWrapper);
             
-                // ===== 跳转按钮 =====
+                // 跳转按钮
                 const jumpBtn = document.createElement('button');
+                jumpBtn.className = 'page-jump-btn';
                 jumpBtn.textContent = '跳转';
-                jumpBtn.className = 'btn btn-secondary';
-                jumpBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.5rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'};`;
+                jumpBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.5rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
                 jumpBtn.addEventListener('click', function() {
                     const val = parseInt(jumpInput.value);
                     if (val >= 1 && val <= totalPages) {
@@ -3347,10 +3375,11 @@
                 });
                 paginationDiv.appendChild(jumpBtn);
             
+                // 下一页按钮
                 const nextBtn = document.createElement('button');
+                nextBtn.className = 'page-next-btn';
                 nextBtn.textContent = '下一页 ▶';
-                nextBtn.className = 'btn btn-secondary';
-                nextBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'};`;
+                nextBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
                 nextBtn.disabled = current >= totalPages;
                 nextBtn.addEventListener('click', () => {
                     if (currentPage < totalPages) {
@@ -3360,10 +3389,11 @@
                 });
                 paginationDiv.appendChild(nextBtn);
             
+                // 尾页按钮
                 const lastBtn = document.createElement('button');
+                lastBtn.className = 'page-last-btn';
                 lastBtn.textContent = '尾页 ⏭';
-                lastBtn.className = 'btn btn-secondary';
-                lastBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'};`;
+                lastBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
                 lastBtn.disabled = current >= totalPages;
                 lastBtn.addEventListener('click', () => {
                     if (currentPage < totalPages) {
