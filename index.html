@@ -4476,16 +4476,30 @@
                 updateTabBarVisibility();
 
                 // ===== 监听窗口大小变化，重新渲染分页控件 =====
+                // window.addEventListener('resize', function() {
+                //     // 如果当前有分页控件，重新渲染
+                //     const paginationDiv = document.getElementById('paginationControls');
+                //     if (paginationDiv) {
+                //         // 重新计算总页数和当前页（从现有数据获取）
+                //         const total = BOOKS.length;
+                //         const totalPages = Math.ceil(total / pageSize) || 1;
+                //         if (currentPage > totalPages) currentPage = totalPages;
+                //         renderPagination(total, totalPages, currentPage);
+                //     }
+                // });
+                // 改为增加防抖处理
+                let resizeTimer = null;
                 window.addEventListener('resize', function() {
-                    // 如果当前有分页控件，重新渲染
-                    const paginationDiv = document.getElementById('paginationControls');
-                    if (paginationDiv) {
-                        // 重新计算总页数和当前页（从现有数据获取）
-                        const total = BOOKS.length;
-                        const totalPages = Math.ceil(total / pageSize) || 1;
-                        if (currentPage > totalPages) currentPage = totalPages;
-                        renderPagination(total, totalPages, currentPage);
-                    }
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        const paginationDiv = document.getElementById('paginationControls');
+                        if (paginationDiv) {
+                            const total = BOOKS.length;
+                            const totalPages = Math.ceil(total / pageSize) || 1;
+                            if (currentPage > totalPages) currentPage = totalPages;
+                            renderPagination(total, totalPages, currentPage);
+                        }
+                    }, 500);
                 });
 
                 console.log('✅ 图书馆管理系统初始化完成');
