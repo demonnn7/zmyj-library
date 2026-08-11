@@ -2129,7 +2129,8 @@
                 if (pageData.length === 0) {
                     tableBody.innerHTML =
                         `<tr><td colspan="${COLUMNS.length + (isAdmin ? 1 : 0) + (currentUser ? 1 : 0)}" class="empty-message">📭 没有找到符合条件的文章</td></tr>`;
-                    removePagination();
+                    // 改为调用 renderPagination 而不是 removePagination
+                    renderPagination(totalCount, totalPages, currentPage);
                     updateTabCounts();
                     return;
                 }
@@ -3205,38 +3206,53 @@
 
             function renderPagination(total, totalPages, current) {
                 removePagination();
-            
-                if (totalPages <= 1) return;
-            
+
                 const tableContainer = document.querySelector('.table-container');
                 const app = document.querySelector('.app');
                 
                 let paginationDiv = document.getElementById('paginationControls');
                 const isMobile = window.innerWidth < 768;
                 
+                // 确保 totalPages 至少为 1
+                const displayTotalPages = Math.max(totalPages, 1);
+                const displayTotal = total || 0;
+                
                 // ===== 如果分页控件已存在，只更新数据，不重建 =====
                 if (paginationDiv) {
-                    // 更新页码输入框的值
                     const input = paginationDiv.querySelector('.page-jump-input');
                     if (input) {
                         input.value = current;
-                        input.max = totalPages;
+                        input.max = displayTotalPages;
                         input.min = 1;
+                        input.disabled = displayTotal === 0;
                     }
-                    // 更新总页码显示
                     const totalLabel = paginationDiv.querySelector('.page-total-label');
                     if (totalLabel) {
-                        totalLabel.textContent = `${totalPages} 页（共 ${total} 条）`;
+                        totalLabel.textContent = `${displayTotalPages} 页（共 ${displayTotal} 条）`;
                     }
-                    // 更新按钮状态
+                    
+                    // 更新按钮状态 - 关键修复：根据 total 和 current 正确设置
                     const firstBtn = paginationDiv.querySelector('.page-first-btn');
                     const prevBtn = paginationDiv.querySelector('.page-prev-btn');
                     const nextBtn = paginationDiv.querySelector('.page-next-btn');
                     const lastBtn = paginationDiv.querySelector('.page-last-btn');
-                    if (firstBtn) firstBtn.disabled = current <= 1;
-                    if (prevBtn) prevBtn.disabled = current <= 1;
-                    if (nextBtn) nextBtn.disabled = current >= totalPages;
-                    if (lastBtn) lastBtn.disabled = current >= totalPages;
+                    const jumpBtn = paginationDiv.querySelector('.page-jump-btn');
+                    
+                    // 当 total 为 0 时，所有按钮禁用
+                    if (displayTotal === 0) {
+                        if (firstBtn) firstBtn.disabled = true;
+                        if (prevBtn) prevBtn.disabled = true;
+                        if (nextBtn) nextBtn.disabled = true;
+                        if (lastBtn) lastBtn.disabled = true;
+                        if (jumpBtn) jumpBtn.disabled = true;
+                    } else {
+                        // 有数据时，根据当前页判断
+                        if (firstBtn) firstBtn.disabled = current <= 1;
+                        if (prevBtn) prevBtn.disabled = current <= 1;
+                        if (nextBtn) nextBtn.disabled = current >= displayTotalPages;
+                        if (lastBtn) lastBtn.disabled = current >= displayTotalPages;
+                        if (jumpBtn) jumpBtn.disabled = false;
+                    }
                     return;
                 }
                 
@@ -3265,15 +3281,17 @@
                     z-index: 10;
                     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
                 `;
-            
+                
+                const isZeroData = displayTotal === 0;
+                
                 // 首页按钮
                 const firstBtn = document.createElement('button');
                 firstBtn.className = 'page-first-btn';
                 firstBtn.textContent = '⏮ 首页';
-                firstBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
-                firstBtn.disabled = current <= 1;
+                firstBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:${isZeroData ? 'not-allowed' : 'pointer'}; border-radius:30px; border:1px solid #cbd5e1; background:${isZeroData ? '#f1f5f9' : 'transparent'}; color:#1e293b;`;
+                firstBtn.disabled = isZeroData || current <= 1;
                 firstBtn.addEventListener('click', () => {
-                    if (currentPage > 1) {
+                    if (currentPage > 1 && displayTotal > 0) {
                         currentPage = 1;
                         renderBooks(currentFilter);
                     }
@@ -3284,16 +3302,16 @@
                 const prevBtn = document.createElement('button');
                 prevBtn.className = 'page-prev-btn';
                 prevBtn.textContent = '◀ 上一页';
-                prevBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
-                prevBtn.disabled = current <= 1;
+                prevBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:${isZeroData ? 'not-allowed' : 'pointer'}; border-radius:30px; border:1px solid #cbd5e1; background:${isZeroData ? '#f1f5f9' : 'transparent'}; color:#1e293b;`;
+                prevBtn.disabled = isZeroData || current <= 1;
                 prevBtn.addEventListener('click', () => {
-                    if (currentPage > 1) {
+                    if (currentPage > 1 && displayTotal > 0) {
                         currentPage--;
                         renderBooks(currentFilter);
                     }
                 });
                 paginationDiv.appendChild(prevBtn);
-            
+                
                 // 页码信息
                 const pageInfoWrapper = document.createElement('span');
                 pageInfoWrapper.style.cssText = `display:flex; align-items:center; gap:${isMobile ? '0.15rem' : '0.3rem'}; font-size:${isMobile ? '0.7rem' : '0.85rem'}; color:#475569;`;
@@ -3307,8 +3325,9 @@
                 jumpInput.className = 'page-jump-input';
                 jumpInput.type = 'number';
                 jumpInput.min = 1;
-                jumpInput.max = totalPages;
+                jumpInput.max = displayTotalPages;
                 jumpInput.value = current;
+                jumpInput.disabled = isZeroData;
                 jumpInput.style.cssText = `
                     width:${isMobile ? '32px' : '50px'}; 
                     padding:${isMobile ? '0.05rem 0.1rem' : '0.15rem 0.3rem'}; 
@@ -3316,29 +3335,28 @@
                     border-radius:30px; 
                     font-size:${isMobile ? '0.7rem' : '0.8rem'}; 
                     text-align:center; 
-                    background:white; 
+                    background:${isZeroData ? '#f1f5f9' : 'white'}; 
                     outline:none;
                     -webkit-appearance: none;
                 `;
                 
                 jumpInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' && displayTotal > 0) {
                         e.preventDefault();
                         const val = parseInt(this.value);
-                        if (val >= 1 && val <= totalPages) {
+                        if (val >= 1 && val <= displayTotalPages) {
                             currentPage = val;
                             renderBooks(currentFilter);
                         } else {
-                            showToast('请输入 1-' + totalPages + ' 之间的页码', 'error');
+                            showToast('请输入 1-' + displayTotalPages + ' 之间的页码', 'error');
                             this.value = current;
                         }
                     }
                 });
                 
-                // ===== 关键：blur 事件只修正值，不触发页面跳转 =====
                 jumpInput.addEventListener('blur', function() {
                     const val = parseInt(this.value);
-                    if (isNaN(val) || val < 1 || val > totalPages) {
+                    if (isNaN(val) || val < 1 || val > displayTotalPages) {
                         this.value = current;
                     }
                 });
@@ -3352,52 +3370,54 @@
                 
                 const labelTotal = document.createElement('span');
                 labelTotal.className = 'page-total-label';
-                labelTotal.textContent = `${totalPages} 页（共 ${total} 条）`;
+                labelTotal.textContent = `${displayTotalPages} 页（共 ${displayTotal} 条）`;
                 labelTotal.style.cssText = `font-size:${isMobile ? '0.7rem' : '0.85rem'}; color:#475569;`;
                 pageInfoWrapper.appendChild(labelTotal);
                 
                 paginationDiv.appendChild(pageInfoWrapper);
-            
+                
                 // 跳转按钮
                 const jumpBtn = document.createElement('button');
                 jumpBtn.className = 'page-jump-btn';
                 jumpBtn.textContent = '跳转';
-                jumpBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.5rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
+                jumpBtn.disabled = isZeroData;
+                jumpBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.5rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:${isZeroData ? 'not-allowed' : 'pointer'}; border-radius:30px; border:1px solid #cbd5e1; background:${isZeroData ? '#f1f5f9' : 'transparent'}; color:#1e293b;`;
                 jumpBtn.addEventListener('click', function() {
+                    if (displayTotal === 0) return;
                     const val = parseInt(jumpInput.value);
-                    if (val >= 1 && val <= totalPages) {
+                    if (val >= 1 && val <= displayTotalPages) {
                         currentPage = val;
                         renderBooks(currentFilter);
                     } else {
-                        showToast('请输入 1-' + totalPages + ' 之间的页码', 'error');
+                        showToast('请输入 1-' + displayTotalPages + ' 之间的页码', 'error');
                         jumpInput.value = current;
                     }
                 });
                 paginationDiv.appendChild(jumpBtn);
-            
+                
                 // 下一页按钮
                 const nextBtn = document.createElement('button');
                 nextBtn.className = 'page-next-btn';
                 nextBtn.textContent = '下一页 ▶';
-                nextBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
-                nextBtn.disabled = current >= totalPages;
+                nextBtn.disabled = isZeroData || current >= displayTotalPages;
+                nextBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:${isZeroData ? 'not-allowed' : 'pointer'}; border-radius:30px; border:1px solid #cbd5e1; background:${isZeroData ? '#f1f5f9' : 'transparent'}; color:#1e293b;`;
                 nextBtn.addEventListener('click', () => {
-                    if (currentPage < totalPages) {
+                    if (currentPage < displayTotalPages && displayTotal > 0) {
                         currentPage++;
                         renderBooks(currentFilter);
                     }
                 });
                 paginationDiv.appendChild(nextBtn);
-            
+                
                 // 尾页按钮
                 const lastBtn = document.createElement('button');
                 lastBtn.className = 'page-last-btn';
                 lastBtn.textContent = '尾页 ⏭';
-                lastBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:pointer; border-radius:30px; border:1px solid #cbd5e1; background:transparent; color:#1e293b;`;
-                lastBtn.disabled = current >= totalPages;
+                lastBtn.disabled = isZeroData || current >= displayTotalPages;
+                lastBtn.style.cssText = `padding:${isMobile ? '0.15rem 0.6rem' : '0.2rem 0.8rem'}; font-size:${isMobile ? '0.65rem' : '0.8rem'}; cursor:${isZeroData ? 'not-allowed' : 'pointer'}; border-radius:30px; border:1px solid #cbd5e1; background:${isZeroData ? '#f1f5f9' : 'transparent'}; color:#1e293b;`;
                 lastBtn.addEventListener('click', () => {
-                    if (currentPage < totalPages) {
-                        currentPage = totalPages;
+                    if (currentPage < displayTotalPages && displayTotal > 0) {
+                        currentPage = displayTotalPages;
                         renderBooks(currentFilter);
                     }
                 });
