@@ -3222,7 +3222,6 @@
                     }
                 }
                 
-                // ===== 判断是否为手机端（宽度小于 768px） =====
                 const isMobile = window.innerWidth < 768;
                 
                 paginationDiv.style.cssText = `
@@ -3243,7 +3242,6 @@
                 `;
                 paginationDiv.innerHTML = '';
             
-                // ===== 首页按钮 =====
                 const firstBtn = document.createElement('button');
                 firstBtn.textContent = '⏮ 首页';
                 firstBtn.className = 'btn btn-secondary';
@@ -3257,7 +3255,6 @@
                 });
                 paginationDiv.appendChild(firstBtn);
                 
-                // ===== 上一页按钮 =====
                 const prevBtn = document.createElement('button');
                 prevBtn.textContent = '◀ 上一页';
                 prevBtn.className = 'btn btn-secondary';
@@ -3271,7 +3268,6 @@
                 });
                 paginationDiv.appendChild(prevBtn);
             
-                // ===== 页码信息：第 [输入框] / 总页数 页（共 总条数 条） =====
                 const pageInfoWrapper = document.createElement('span');
                 pageInfoWrapper.style.cssText = `display:flex; align-items:center; gap:${isMobile ? '0.15rem' : '0.3rem'}; font-size:${isMobile ? '0.7rem' : '0.85rem'}; color:#475569;`;
                 
@@ -3294,9 +3290,13 @@
                     text-align:center; 
                     background:white; 
                     outline:none;
+                    -webkit-appearance: none;
                 `;
+                
+                // ===== 修复：使用 change 事件，并在跳转时才触发页面更新 =====
                 jumpInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
+                        e.preventDefault();
                         const val = parseInt(this.value);
                         if (val >= 1 && val <= totalPages) {
                             currentPage = val;
@@ -3307,12 +3307,15 @@
                         }
                     }
                 });
+                
+                // ===== 移除 blur 事件中的页面跳转，只做简单的值修正 =====
                 jumpInput.addEventListener('blur', function() {
                     const val = parseInt(this.value);
                     if (isNaN(val) || val < 1 || val > totalPages) {
                         this.value = current;
                     }
                 });
+                
                 pageInfoWrapper.appendChild(jumpInput);
                 
                 const labelMiddle = document.createElement('span');
@@ -3344,7 +3347,6 @@
                 });
                 paginationDiv.appendChild(jumpBtn);
             
-                // ===== 下一页按钮 =====
                 const nextBtn = document.createElement('button');
                 nextBtn.textContent = '下一页 ▶';
                 nextBtn.className = 'btn btn-secondary';
@@ -3358,7 +3360,6 @@
                 });
                 paginationDiv.appendChild(nextBtn);
             
-                // ===== 尾页按钮 =====
                 const lastBtn = document.createElement('button');
                 lastBtn.textContent = '尾页 ⏭';
                 lastBtn.className = 'btn btn-secondary';
