@@ -3205,19 +3205,16 @@
 
             function renderPagination(total, totalPages, current) {
                 removePagination();
-
+            
                 if (totalPages <= 1) return;
-
-                // 获取表格容器后面的父容器
+            
                 const tableContainer = document.querySelector('.table-container');
                 const app = document.querySelector('.app');
                 
-                // 检查是否已存在分页容器
                 let paginationDiv = document.getElementById('paginationControls');
                 if (!paginationDiv) {
                     paginationDiv = document.createElement('div');
                     paginationDiv.id = 'paginationControls';
-                    // 插入到 table-container 之后
                     if (tableContainer && tableContainer.parentNode) {
                         tableContainer.parentNode.insertBefore(paginationDiv, tableContainer.nextSibling);
                     } else {
@@ -3229,9 +3226,9 @@
                     display:flex; 
                     justify-content:center; 
                     align-items:center; 
-                    gap:0.5rem; 
-                    padding:0.8rem 1rem; 
-                    margin-top: 0.8rem;
+                    gap:0.3rem; 
+                    padding:0.4rem 0.6rem; 
+                    margin-top: 0.6rem;
                     background:#f8fafc; 
                     border-radius: 24px;
                     border: 1px solid #e9edf2;
@@ -3242,11 +3239,11 @@
                     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
                 `;
                 paginationDiv.innerHTML = '';
-
+            
                 const firstBtn = document.createElement('button');
                 firstBtn.textContent = '⏮ 首页';
                 firstBtn.className = 'btn btn-secondary';
-                firstBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                firstBtn.style.cssText = 'padding:0.15rem 0.6rem; font-size:0.65rem;';
                 firstBtn.disabled = current <= 1;
                 firstBtn.addEventListener('click', () => {
                     if (currentPage > 1) {
@@ -3259,7 +3256,7 @@
                 const prevBtn = document.createElement('button');
                 prevBtn.textContent = '◀ 上一页';
                 prevBtn.className = 'btn btn-secondary';
-                prevBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                prevBtn.style.cssText = 'padding:0.15rem 0.6rem; font-size:0.65rem;';
                 prevBtn.disabled = current <= 1;
                 prevBtn.addEventListener('click', () => {
                     if (currentPage > 1) {
@@ -3268,26 +3265,26 @@
                     }
                 });
                 paginationDiv.appendChild(prevBtn);
-
+            
                 const infoSpan = document.createElement('span');
                 infoSpan.textContent = `第 ${current} / ${totalPages} 页（共 ${total} 条）`;
-                infoSpan.style.cssText = 'font-size:0.85rem; color:#475569; margin:0 0.5rem; white-space:nowrap;';
+                infoSpan.style.cssText = 'font-size:0.7rem; color:#475569; margin:0 0.3rem; white-space:nowrap;';
                 paginationDiv.appendChild(infoSpan);
-
+            
                 const jumpWrapper = document.createElement('span');
-                jumpWrapper.style.cssText = 'display:flex; align-items:center; gap:0.3rem;';
-
+                jumpWrapper.style.cssText = 'display:flex; align-items:center; gap:0.2rem;';
+            
                 const jumpInput = document.createElement('input');
                 jumpInput.type = 'number';
                 jumpInput.min = 1;
                 jumpInput.max = totalPages;
                 jumpInput.value = current;
                 jumpInput.style.cssText = `
-                    width:50px; 
-                    padding:0.15rem 0.3rem; 
+                    width:36px; 
+                    padding:0.1rem 0.15rem; 
                     border:1px solid #d0d9e6; 
                     border-radius:30px; 
-                    font-size:0.8rem; 
+                    font-size:0.7rem; 
                     text-align:center; 
                     background:white; 
                     outline:none;
@@ -3311,17 +3308,17 @@
                     }
                 });
                 jumpWrapper.appendChild(jumpInput);
-
+            
                 const jumpLabel = document.createElement('span');
                 jumpLabel.textContent = '页';
-                jumpLabel.style.cssText = 'font-size:0.8rem; color:#64748b;';
+                jumpLabel.style.cssText = 'font-size:0.7rem; color:#64748b;';
                 jumpWrapper.appendChild(jumpLabel);
                 paginationDiv.appendChild(jumpWrapper);
-
+            
                 const nextBtn = document.createElement('button');
                 nextBtn.textContent = '下一页 ▶';
                 nextBtn.className = 'btn btn-secondary';
-                nextBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                nextBtn.style.cssText = 'padding:0.15rem 0.6rem; font-size:0.65rem;';
                 nextBtn.disabled = current >= totalPages;
                 nextBtn.addEventListener('click', () => {
                     if (currentPage < totalPages) {
@@ -3330,11 +3327,11 @@
                     }
                 });
                 paginationDiv.appendChild(nextBtn);
-
+            
                 const lastBtn = document.createElement('button');
                 lastBtn.textContent = '尾页 ⏭';
                 lastBtn.className = 'btn btn-secondary';
-                lastBtn.style.cssText = 'padding:0.2rem 0.8rem; font-size:0.8rem;';
+                lastBtn.style.cssText = 'padding:0.15rem 0.6rem; font-size:0.65rem;';
                 lastBtn.disabled = current >= totalPages;
                 lastBtn.addEventListener('click', () => {
                     if (currentPage < totalPages) {
