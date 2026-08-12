@@ -2250,10 +2250,9 @@
                             const hasRecommendation = book.recommendation && book.recommendation.trim() !== '';
                             const titleText = book.title || '-';
                             if (hasRecommendation) {
-                                // 转义特殊字符
-                                const escapedTitle = titleText.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                const escapedRecommendation = (book.recommendation || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                value = `<span class="title-with-recommendation" data-bookid="${book.id}" style="cursor:pointer; color:#1f4b6e; text-decoration:underline; text-underline-offset:2px; text-decoration-style:dotted; font-weight:500; position:relative;" onclick="toggleRecommendation(${book.id}, '${escapedTitle}', '${escapedRecommendation}')">${titleText} 💬</span>`;
+                                // 使用 data 属性存储数据，避免 onclick 中的转义问题
+                                const escapedTitle = titleText.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                                value = `<span class="title-with-recommendation" data-bookid="${book.id}" data-title="${escapedTitle}" data-recommendation="${encodeURIComponent(book.recommendation || '')}" style="cursor:pointer; color:#1f4b6e; text-decoration:underline; text-underline-offset:2px; text-decoration-style:dotted; font-weight:500; position:relative;">${titleText} 💬</span>`;
                             } else {
                                 value = `<span style="font-weight:500;">${titleText}</span>`;
                             }
@@ -2324,6 +2323,25 @@
                     bodyHtml += '</tr>';
                 });
                 tableBody.innerHTML = bodyHtml;
+
+                // 先移除之前绑定的事件，避免重复
+                const oldListener = tableBody._recommendationListener;
+                if (oldListener) {
+                    tableBody.removeEventListener('click', oldListener);
+                }
+
+                const recommendationListener = function(e) {
+                    const target = e.target.closest('.title-with-recommendation');
+                    if (target) {
+                        e.stopPropagation();
+                        const bookId = parseInt(target.dataset.bookid);
+                        if (bookId) {
+                            window.toggleRecommendation(bookId);
+                        }
+                    }
+                };
+                tableBody.addEventListener('click', recommendationListener);
+                tableBody._recommendationListener = recommendationListener;
 
                 renderPagination(totalCount, totalPages, currentPage);
 
@@ -4580,7 +4598,7 @@
 
             let popupTimeout = null;
 
-            window.toggleRecommendation = function(bookId, title, recommendation) {
+            window.toggleRecommendation = function(bookId) {
                 const popup = document.getElementById('recommendationPopup');
                 const popupContent = document.getElementById('popupContent');
                 
@@ -4590,41 +4608,45 @@
                     return;
                 }
                 
-                // 只更新推荐理由内容
+                // 从 data 属性获取数据
+                const titleElement = document.querySelector(`.title-with-recommendation[data-bookid="${bookId}"]`);
+                if (!titleElement) return;
+                
+                const title = titleElement.dataset.title || '文名';
+                const recommendation = decodeURIComponent(titleElement.dataset.recommendation || '');
+                
+                // 更新内容
                 popupContent.textContent = recommendation || '暂无推荐理由';
                 popup.dataset.bookId = bookId;
                 
                 // 定位悬浮框
-                const titleElement = document.querySelector(`.title-with-recommendation[data-bookid="${bookId}"]`);
-                if (titleElement) {
-                    const rect = titleElement.getBoundingClientRect();
-                    const popupWidth = Math.min(380, window.innerWidth - 40);
-                    
-                    let left = rect.left + rect.width / 2 - popupWidth / 2;
-                    let top = rect.bottom + 8;
-                    
-                    // 防止溢出右边界
-                    if (left + popupWidth > window.innerWidth - 10) {
-                        left = window.innerWidth - popupWidth - 10;
-                    }
-                    // 防止溢出左边界
-                    if (left < 10) {
-                        left = 10;
-                    }
-                    // 防止溢出下边界
-                    if (top + 180 > window.innerHeight - 10) {
-                        top = rect.top - 180;
-                    }
-                    // 防止溢出上边界
-                    if (top < 10) {
-                        top = 10;
-                    }
-                    
-                    popup.style.left = left + 'px';
-                    popup.style.top = top + 'px';
-                    popup.style.maxWidth = Math.min(380, window.innerWidth - 40) + 'px';
-                    popup.style.minWidth = Math.min(260, window.innerWidth - 60) + 'px';
+                const rect = titleElement.getBoundingClientRect();
+                const popupWidth = Math.min(380, window.innerWidth - 40);
+                
+                let left = rect.left + rect.width / 2 - popupWidth / 2;
+                let top = rect.bottom + 8;
+                
+                // 防止溢出右边界
+                if (left + popupWidth > window.innerWidth - 10) {
+                    left = window.innerWidth - popupWidth - 10;
                 }
+                // 防止溢出左边界
+                if (left < 10) {
+                    left = 10;
+                }
+                // 防止溢出下边界
+                if (top + 180 > window.innerHeight - 10) {
+                    top = rect.top - 180;
+                }
+                // 防止溢出上边界
+                if (top < 10) {
+                    top = 10;
+                }
+                
+                popup.style.left = left + 'px';
+                popup.style.top = top + 'px';
+                popup.style.maxWidth = Math.min(380, window.innerWidth - 40) + 'px';
+                popup.style.minWidth = Math.min(260, window.innerWidth - 60) + 'px';
                 
                 // 显示悬浮框
                 popup.style.display = 'block';
