@@ -973,7 +973,7 @@
 
     </div>
 
-    <!-- ===== 推荐理由悬浮框（极浅绿色） ===== -->
+    <!-- ===== 推荐理由悬浮框 ===== -->
 <div id="recommendationPopup" style="display:none; position:fixed; z-index:1000; background:linear-gradient(145deg, #f8fbf7, #f0f5ee); border-radius:14px; box-shadow:0 12px 40px rgba(140,180,150,0.06), 0 2px 8px rgba(0,0,0,0.03); border:1px solid rgba(200,220,200,0.18); max-width:360px; min-width:240px; padding:0.5rem 0.9rem 0.7rem 0.9rem; pointer-events:none; transition:opacity 0.25s ease; opacity:0;">
     <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:0.05rem;">
         <button onclick="window.closeRecommendationPopup()" style="background:transparent; border:none; color:#d0d8cc; cursor:pointer; font-size:0.9rem; padding:0 0.1rem; pointer-events:auto; line-height:1; transition:color 0.2s; font-weight:300;" onmouseover="this.style.color='#b0bcac'" onmouseout="this.style.color='#d0d8cc'">✕</button>
@@ -1068,16 +1068,12 @@
             //  1. 配置
             // ================================================================
 
-            // ⚠️ 请将以下两个变量替换为你的 Supabase 项目实际值
+            // Supabase 项目
             const SUPABASE_URL = 'https://snjalmxaenojztluwsyk.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuamFsbXhhZW5vanp0bHV3c3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNTM2MzAsImV4cCI6MjEwMTcyOTYzMH0.qCbQY-QKEafj1Lw0l8CCapTZKZk2_TfPFOvllEU-ARQ';
 
-            // 管理员账号配置（仅一个账号，密码硬编码）
+            // 管理员账号配置
             const ADMIN_PASSWORD = 'zmyj251006';
-
-            if (SUPABASE_URL === 'https://your-project.supabase.co') {
-                console.warn('⚠️ 请将 SUPABASE_URL 和 SUPABASE_ANON_KEY 替换为你的实际值');
-            }
 
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1113,7 +1109,7 @@
                     '捡手机', '哨向', '背德', '双性', '网黄', 'fork/cake', 'ABO', '职场', '先婚后爱', '性转',
                     'ntr', '9号房', '穿越'
                 ],
-                characterTags: ['伯牙子期', '赵章', '林章']  // 新增这行
+                characterTags: ['伯牙子期', '赵章', '林章'] 
             };
 
             let OPTIONS_BACKUP = null;
@@ -1222,7 +1218,7 @@
             }
 
             // ================================================================
-            //  5. 用户管理（新增）
+            //  5. 用户管理
             // ================================================================
 
             function loadUserSession() {
@@ -1603,7 +1599,7 @@
                         saveUserSession(user);
                         await loadUserReads();
 
-                        // ===== 新增：用户登录时，清除管理员状态 =====
+                        // ===== 用户登录时，清除管理员状态 =====
                         if (isAdmin) {
                             isAdmin = false;
                             clearAdminSession();
@@ -1745,7 +1741,7 @@
             }
 
             // ================================================================
-            //  7. 数据库操作（完全保留原有逻辑）
+            //  7. 数据库操作
             // ================================================================
 
             async function loadBooksFromDB() {
@@ -1835,7 +1831,7 @@
                     { title: '示例文名1', author: '作者名', platform: 'lofter', tags: ['现背'], status: '已完结',
                     ending: 'he', attributes: '龙驰', car: '√', chapters: '多篇章', link: '#' },
                     { title: '示例文名2', author: '作者名', platform: 'ao3', tags: ['纯爱'], status: '未完结', ending: 'oe',
-                        attributes: '驰龙', car: '×', chapters: '一发完', link: '#' },
+                        attributes: '弛龙', car: '×', chapters: '一发完', link: '#' },
                     { title: '示例文名3', author: '作者名', platform: 'web', tags: ['破镜重圆', '火葬场'], status: '',
                         ending: 'be', attributes: '互攻', car: '', chapters: '', link: '#' },
                     { title: '示例文名4', author: '作者名', platform: '小红书', tags: ['末世'], status: '自选结局', ending: '',
@@ -2024,7 +2020,7 @@
                     return false;
                 }
             }
-                        // ================================================================
+            // ================================================================
             //  8. 渲染函数
             // ================================================================
 
@@ -2044,7 +2040,6 @@
 
             function renderTableHeader() {
                 let html = '<tr>';
-                // 登录用户显示"标记"列（合并已读和想看）
                 if (currentUser) {
                     html += `<th style="width:60px; min-width:60px; max-width:60px; text-align:center;">标记</th>`;
                 }
@@ -2078,7 +2073,7 @@
                 const titleKeyword = searchTitle ? searchTitle.value.trim().toLowerCase() : '';
                 const authorKeyword = searchAuthor ? searchAuthor.value.trim().toLowerCase() : '';
 
-                // ===== 第一步：应用作者筛选 =====
+                // ===== 应用作者筛选 =====
                 let workingBooks = BOOKS;
                 if (currentAuthorFilter) {
                     workingBooks = BOOKS.filter(book => {
@@ -2087,7 +2082,7 @@
                     });
                 }
 
-                // ===== 第二步：在作者筛选结果上应用其他筛选 =====
+                // ===== 在作者筛选结果上应用其他筛选 =====
                 const filtered = workingBooks.filter(book => {
                     let platformMatch = true;
                     if (filter.platform.size > 0) {
@@ -2097,7 +2092,6 @@
                         }
                     }
                     
-                    // ===== tag 筛选逻辑：普通tag和角色tag取交集 =====
                     let tagMatch = true;
                     if (filter.tags.size > 0) {
                         const bookTags = book.tags || [];
@@ -2110,21 +2104,21 @@
                         const characterTags = OPTIONS.characterTags || [];
                         const selectedCharacterTags = Array.from(filter.tags).filter(t => characterTags.includes(t));
                         
-                        // 检查普通tag条件（如果有选中的普通tag）
+                        // 检查普通tag条件
                         let normalTagMatch = true;
                         if (selectedNormalTags.length > 0) {
-                            // 普通tag：至少匹配一个（并集）
+                            // 普通tag：至少匹配一个
                             normalTagMatch = selectedNormalTags.some(t => bookTags.includes(t));
                         }
                         
-                        // 检查角色tag条件（如果有选中的角色tag）
+                        // 检查角色tag条件
                         let characterTagMatch = true;
                         if (selectedCharacterTags.length > 0) {
-                            // 角色tag：至少匹配一个（并集）
+                            // 角色tag：至少匹配一个
                             characterTagMatch = selectedCharacterTags.some(t => bookTags.includes(t));
                         }
                         
-                        // 普通tag和角色tag之间取交集（AND）
+                        // 普通tag和角色tag之间取交集
                         tagMatch = normalTagMatch && characterTagMatch;
                     }
                     
@@ -2163,7 +2157,7 @@
                         chaptersMatch && titleMatch && authorSearchMatch;
                 });
 
-                // ===== 第三步：根据当前选项卡筛选 =====
+                // ===== 根据当前选项卡筛选 =====
                 let displayData = filtered;
                 if (currentTab === 'read' && currentUser) {
                     displayData = displayData.filter(book => userReads.includes(book.id));
@@ -2532,17 +2526,17 @@
             }
 
             function clearAuthorFilter() {
-                // ===== 第一步：清除作者筛选状态 =====
+                // ===== 清除作者筛选状态 =====
                 currentAuthorFilter = null;
                 isAuthorMode = false;
                 
-                // ===== 第二步：移除作者筛选的 badge =====
+                // ===== 移除作者筛选的 badge =====
                 const existingBadge = document.getElementById('authorFilterBadge');
                 if (existingBadge) {
                     existingBadge.remove();
                 }
                 
-                // ===== 第三步：恢复之前的栏目 =====
+                // ===== 恢复之前的栏目 =====
                 if (previousTabBeforeAuthor) {
                     currentTab = previousTabBeforeAuthor;
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2555,10 +2549,10 @@
                     }
                 }
                 
-                // ===== 第四步：恢复页码 =====
+                // ===== 恢复页码 =====
                 currentPage = previousPageBeforeAuthor;
                 
-                // ===== 第五步：恢复选项卡可见性 =====
+                // ===== 恢复选项卡可见性 =====
                 const tabBar = document.getElementById('tabBar');
                 if (currentUser) {
                     tabBar.style.display = 'flex';
@@ -2569,7 +2563,7 @@
                 tabRead.style.display = 'inline-block';
                 tabWant.style.display = 'inline-block';
                 
-                // ===== 第六步：恢复筛选条件 =====
+                // ===== 恢复筛选条件 =====
                 FILTER_FIELDS.forEach(field => { currentFilter[field] = new Set(); });
                 
                 if (previousFilterBeforeAuthor) {
@@ -2591,19 +2585,19 @@
                     });
                 }
                 
-                // ===== 第七步：恢复"只看未读"状态 =====
+                // ===== 恢复"只看未读"状态 =====
                 showUnreadOnlyState = previousShowUnreadOnly;
                 if (showUnreadOnly) {
                     showUnreadOnly.checked = previousShowUnreadOnly;
                 }
                 
-                // ===== 第八步：重置临时变量 =====
+                // ===== 重置临时变量 =====
                 previousTabBeforeAuthor = 'all';
                 previousPageBeforeAuthor = 1;
                 previousFilterBeforeAuthor = null;
                 previousShowUnreadOnly = false;
                 
-                // ===== 第九步：强制刷新数据 =====
+                // ===== 强制刷新数据 =====
                 renderBooks(currentFilter);
                 updateFilterIndicator();
             }
@@ -2612,7 +2606,6 @@
             function updateTabBarVisibility() {
                 const tabBar = document.getElementById('tabBar');
                 if (isAuthorMode) {
-                    // 作者模式下，全部显示但切换逻辑由点击事件控制
                     tabAll.style.display = 'inline-block';
                     tabRead.style.display = 'inline-block';
                     tabWant.style.display = 'inline-block';
@@ -2654,7 +2647,6 @@
                         if (!bookPlatforms.some(p => currentFilter.platform.has(p))) return;
                     }
                     
-                    // ===== 修复 tag 筛选逻辑：普通tag和角色tag取交集 =====
                     if (currentFilter.tags.size > 0) {
                         const bookTags = book.tags || [];
                         
@@ -2666,21 +2658,21 @@
                         const characterTags = OPTIONS.characterTags || [];
                         const selectedCharacterTags = Array.from(currentFilter.tags).filter(t => characterTags.includes(t));
                         
-                        // 检查普通tag条件（如果有选中的普通tag）
+                        // 检查普通tag条件
                         let normalTagMatch = true;
                         if (selectedNormalTags.length > 0) {
-                            // 普通tag：至少匹配一个（并集）
+                            // 普通tag：至少匹配一个
                             normalTagMatch = selectedNormalTags.some(t => bookTags.includes(t));
                         }
                         
-                        // 检查角色tag条件（如果有选中的角色tag）
+                        // 检查角色tag条件
                         let characterTagMatch = true;
                         if (selectedCharacterTags.length > 0) {
-                            // 角色tag：至少匹配一个（并集）
+                            // 角色tag：至少匹配一个
                             characterTagMatch = selectedCharacterTags.some(t => bookTags.includes(t));
                         }
                         
-                        // 普通tag和角色tag之间取交集（AND）
+                        // 普通tag和角色tag之间取交集
                         if (!(normalTagMatch && characterTagMatch)) return;
                     }
                     
@@ -2784,7 +2776,7 @@
                     }
                 }
 
-                // 开始自动滚动 - 滚动整个页面
+                // 开始自动滚动
                 function startAutoScroll(direction) {
                     stopAutoScroll();
                     const speed = 6;
@@ -2989,7 +2981,6 @@
 
                 // ---------- 触摸拖拽事件 ----------
                 function onTouchStart(e) {
-                    // ===== 关键：阻止默认行为，防止页面滚动 =====
                     e.preventDefault();
 
                     const touch = e.touches[0];
@@ -3029,7 +3020,7 @@
 
                     window._dragMouseY = touch.clientY;
 
-                    // 创建触摸拖拽克隆（用于视觉反馈）
+                    // 创建触摸拖拽克隆
                     touchDragClone = row.cloneNode(true);
                     touchDragClone.style.position = 'fixed';
                     touchDragClone.style.zIndex = '9999';
@@ -3357,7 +3348,7 @@
                         totalLabel.textContent = `${displayTotalPages} 页（共 ${displayTotal} 条）`;
                     }
                     
-                    // 更新按钮状态 - 关键修复：根据 total 和 current 正确设置
+                    // 更新按钮状态 
                     const firstBtn = paginationDiv.querySelector('.page-first-btn');
                     const prevBtn = paginationDiv.querySelector('.page-prev-btn');
                     const nextBtn = paginationDiv.querySelector('.page-next-btn');
@@ -3966,8 +3957,6 @@
             }
 
             function renderAddRowSelectors() {
-                // 这个函数用于更新添加和编辑模态框中的下拉选项
-                // 在 options 修改后调用
                 
                 // 更新添加模态框中的 platform
                 const addPlatformContainer = document.getElementById('addPlatformContainer');
@@ -4558,7 +4547,7 @@
                     OPTIONS_BACKUP = null;
                     // 重新渲染相关界面
                     renderFilterPanel();
-                    renderAddRowSelectors();  // 添加这一行
+                    renderAddRowSelectors(); 
                     renderBooks(currentFilter);
                 }
             }
@@ -4567,7 +4556,7 @@
                 const success = await saveOptionsToDB();
                 if (success) {
                     closeOptionsModal();
-                    renderAddRowSelectors();  // 添加这一行
+                    renderAddRowSelectors();  
                     renderFilterPanel();
                     renderBooks(currentFilter);
                     showToast('选项已保存', 'success');
@@ -4593,7 +4582,7 @@
             }
 
             // ================================================================
-            //  推荐理由悬浮框控制函数
+            //  18. 推荐理由悬浮框
             // ================================================================
 
             let popupTimeout = null;
@@ -4693,7 +4682,7 @@
             }, true);
 
             // ================================================================
-            //  18. 初始化
+            //  19. 初始化
             // ================================================================
 
             async function init() {
@@ -4813,7 +4802,7 @@
                 // 选项卡切换
                 tabAll.addEventListener('click', function() {
                     if (isAuthorMode) {
-                        // 作者模式下，切换到全部文章（但保留作者筛选）
+                        // 切换到全部文章，保留作者筛选
                         currentTab = 'all';
                         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                         this.classList.add('active');
@@ -4833,7 +4822,7 @@
                         showToast('请先登录查看已读文章', 'error');
                         return;
                     }
-                    // 作者模式下也允许切换到已读，但保留作者筛选
+                    // 切换到已读，保留作者筛选
                     currentTab = 'read';
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
@@ -4846,7 +4835,7 @@
                         showToast('请先登录查看想看文章', 'error');
                         return;
                     }
-                    // 作者模式下也允许切换到想看，但保留作者筛选
+                    // 切换到想看，保留作者筛选
                     currentTab = 'want';
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
