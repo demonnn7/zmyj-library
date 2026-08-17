@@ -5399,37 +5399,53 @@
                     }, { passive: false });
 
                     list.addEventListener('touchend', function(e) {
-                        // 如果拖拽到空白区域结束
-                        if (touchDraggedItem) {
-                            const touch = e.changedTouches[0];
-                            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                            // 如果触摸结束位置不在任何选项标签上，且在当前列表内
-                            if (target) {
-                                const targetItem = target.closest('.option-tag-item');
-                                if (!targetItem || targetItem === touchDraggedItem) {
-                                    // 检查是否在列表区域内
-                                    const listRect = list.getBoundingClientRect();
-                                    if (touch.clientX >= listRect.left && touch.clientX <= listRect.right &&
-                                        touch.clientY >= listRect.top && touch.clientY <= listRect.bottom) {
-                                        performDropToListEnd(touchDraggedItem, touchDraggedValue, touchDragGroup, touch.clientY);
-                                    }
+                        // 只有正在拖拽时才处理
+                        if (!isTouchDragging || !touchDraggedItem) {
+                            // 重置触摸状态
+                            if (touchDraggedItem) {
+                                touchDraggedItem.classList.remove('dragging');
+                                touchDraggedItem.style.opacity = '1';
+                                touchDraggedItem = null;
+                                touchDraggedValue = null;
+                                touchDragGroup = null;
+                            }
+                            return;
+                        }
+                        
+                        const touch = e.changedTouches[0];
+                        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                        
+                        // 如果触摸结束位置不在任何选项标签上，且在当前列表内
+                        if (target) {
+                            const targetItem = target.closest('.option-tag-item');
+                            if (!targetItem || targetItem === touchDraggedItem) {
+                                const listRect = list.getBoundingClientRect();
+                                if (touch.clientX >= listRect.left && touch.clientX <= listRect.right &&
+                                    touch.clientY >= listRect.top && touch.clientY <= listRect.bottom) {
+                                    performDropToListEnd(touchDraggedItem, touchDraggedValue, touchDragGroup, touch.clientY);
                                 }
                             }
-                            // 清理触摸状态
-                            if (touchClone && touchClone.parentNode) {
-                                touchClone.parentNode.removeChild(touchClone);
-                                touchClone = null;
-                            }
-                            touchDraggedItem = null;
-                            touchDraggedValue = null;
-                            touchDragGroup = null;
-                            touchStartRect = null;
-                            // 清除高亮
-                            list.querySelectorAll('.option-tag-item').forEach(el => {
-                                el.classList.remove('drag-over');
-                                el.style.opacity = '1';
-                            });
                         }
+                        
+                        // 清理触摸状态
+                        if (touchClone && touchClone.parentNode) {
+                            touchClone.parentNode.removeChild(touchClone);
+                            touchClone = null;
+                        }
+                        if (touchDraggedItem) {
+                            touchDraggedItem.classList.remove('dragging');
+                            touchDraggedItem.style.opacity = '1';
+                        }
+                        touchDraggedItem = null;
+                        touchDraggedValue = null;
+                        touchDragGroup = null;
+                        touchStartRect = null;
+                        isTouchDragging = false;
+                        // 清除高亮
+                        list.querySelectorAll('.option-tag-item').forEach(el => {
+                            el.classList.remove('drag-over');
+                            el.style.opacity = '1';
+                        });
                     }, { passive: false });
                 });
 
