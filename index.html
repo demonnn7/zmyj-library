@@ -5076,6 +5076,11 @@
                     let touchOffsetX = 0;
                     let touchOffsetY = 0;
                     let touchStartRect = null;
+                    let touchStartTime = 0; 
+                    let touchStartX = 0;   
+                    let touchStartY = 0; 
+                    let touchTimer = null; 
+                    let isTouchDragging = false;
 
                     // ===== 鼠标拖拽事件 =====
                     const items = list.querySelectorAll('.option-tag-item');
@@ -5139,50 +5144,93 @@
 
                         // ===== 触摸拖拽事件 =====
                         item.addEventListener('touchstart', function(e) {
-                            // 如果点击的是删除按钮，不触发拖拽
-                            if (e.target.closest('del-opt')) return;
+                            // 如果点击的是删除按钮或其子元素，不触发拖拽
+                            if (e.target.closest('.del-opt')) {
+                                return;
+                            }
                             
                             const touch = e.touches[0];
-                            touchDraggedItem = this;
-                            touchDraggedValue = this.dataset.value;
-                            touchDragGroup = this.dataset.group;
-                            touchStartRect = this.getBoundingClientRect();
+                            touchStartTime = Date.now();
+                            touchStartX = touch.clientX;
+                            touchStartY = touch.clientY;
+                            isTouchDragging = false;
                             
-                            // 计算触摸点相对于元素的位置
-                            touchOffsetX = touch.clientX - touchStartRect.left;
-                            touchOffsetY = touch.clientY - touchStartRect.top;
+                            // 清除之前的计时器
+                            if (touchTimer) {
+                                clearTimeout(touchTimer);
+                                touchTimer = null;
+                            }
                             
-                            // 创建拖拽克隆
-                            touchClone = this.cloneNode(true);
-                            touchClone.style.position = 'fixed';
-                            touchClone.style.zIndex = '9999';
-                            touchClone.style.pointerEvents = 'none';
-                            touchClone.style.opacity = '0.85';
-                            touchClone.style.transform = 'scale(1.05)';
-                            touchClone.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
-                            touchClone.style.borderRadius = '30px';
-                            touchClone.style.background = '#eef2ff';
-                            touchClone.style.border = '2px solid #1f4b6e';
-                            touchClone.style.width = touchStartRect.width + 'px';
-                            touchClone.style.left = (touch.clientX - touchOffsetX) + 'px';
-                            touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+                            // 设置长按计时器（300ms）
+                            touchTimer = setTimeout(function() {
+                                // 检查触摸点是否移动过多（防止滚动时误触发）
+                                if (!touchDraggedItem) return;
+                                
+                                // 开始拖拽
+                                isTouchDragging = true;
+                                touchDraggedItem = e.currentTarget;
+                                touchDraggedValue = touchDraggedItem.dataset.value;
+                                touchDragGroup = touchDraggedItem.dataset.group;
+                                touchStartRect = touchDraggedItem.getBoundingClientRect();
+                                
+                                // 计算触摸点相对于元素的位置
+                                touchOffsetX = touch.clientX - touchStartRect.left;
+                                touchOffsetY = touch.clientY - touchStartRect.top;
+                                
+                                // 创建拖拽克隆
+                                touchClone = touchDraggedItem.cloneNode(true);
+                                touchClone.style.position = 'fixed';
+                                touchClone.style.zIndex = '9999';
+                                touchClone.style.pointerEvents = 'none';
+                                touchClone.style.opacity = '0.85';
+                                touchClone.style.transform = 'scale(1.05)';
+                                touchClone.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
+                                touchClone.style.borderRadius = '30px';
+                                touchClone.style.background = '#eef2ff';
+                                touchClone.style.border = '2px solid #1f4b6e';
+                                touchClone.style.width = touchStartRect.width + 'px';
+                                touchClone.style.left = (touch.clientX - touchOffsetX) + 'px';
+                                touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+                                
+                                // 移除克隆中的删除按钮
+                                const delBtn = touchClone.querySelector('.del-opt');
+                                if (delBtn) delBtn.remove();
+                                
+                                document.body.appendChild(touchClone);
+                                
+                                // 原元素半透明
+                                touchDraggedItem.classList.add('dragging');
+                                touchDraggedItem.style.opacity = '0.3';
+                                
+                                
+                                touchTimer = null;
+                            }, 300); 
                             
-                            // 移除克隆中的删除按钮，防止干扰
-                            const delBtn = touchClone.querySelector('.del-opt');
-                            if (delBtn) delBtn.remove();
-                            
-                            document.body.appendChild(touchClone);
-                            
-                            // 原元素半透明
-                            this.classList.add('dragging');
-                            this.style.opacity = '0.3';
-                            
-                            // 阻止页面滚动
                             e.preventDefault();
                         }, { passive: false });
 
                         // 触摸移动
                         item.addEventListener('touchmove', function(e) {
+                            if (!isTouchDragging) {
+                                // 如果还没开始拖拽，检测是否移动过大（取消长按）
+                                if (touchTimer) {
+                                    const touch = e.touches[0];
+                                    const dx = touch.clientX - touchStartX;
+                                    const dy = touch.clientY - touchStartY;
+                                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                                        clearTimeout(touchTimer);
+                                        touchTimer = null;
+                                        // 如果已经设置了 touchDraggedItem 但还没开始拖拽，重置
+                                        if (touchDraggedItem) {
+                                            touchDraggedItem = null;
+                                            touchDraggedValue = null;
+                                            touchDragGroup = null;
+                                        }
+                                    }
+                                }
+                                return;
+                            }
+                            
                             e.preventDefault();
                             if (!touchDraggedItem || !touchClone) return;
                             
@@ -5215,6 +5263,33 @@
 
                         // 触摸结束
                         item.addEventListener('touchend', function(e) {
+                            // 清除长按计时器
+                            if (touchTimer) {
+                                clearTimeout(touchTimer);
+                                touchTimer = null;
+                            }
+                            
+                            // 如果是点击，不执行任何操作
+                            if (!isTouchDragging) {
+                                // 重置状态
+                                if (touchDraggedItem) {
+                                    touchDraggedItem.classList.remove('dragging');
+                                    touchDraggedItem.style.opacity = '1';
+                                    touchDraggedItem = null;
+                                    touchDraggedValue = null;
+                                    touchDragGroup = null;
+                                }
+                                // 清除高亮
+                                const parentList = this.closest('.option-tag-list');
+                                if (parentList) {
+                                    parentList.querySelectorAll('.option-tag-item').forEach(el => {
+                                        el.classList.remove('drag-over');
+                                        el.style.opacity = '1';
+                                    });
+                                }
+                                return;
+                            }
+                            
                             e.preventDefault();
                             
                             // 移除克隆
@@ -5224,8 +5299,10 @@
                             }
                             
                             // 恢复原元素
-                            this.classList.remove('dragging');
-                            this.style.opacity = '1';
+                            if (touchDraggedItem) {
+                                touchDraggedItem.classList.remove('dragging');
+                                touchDraggedItem.style.opacity = '1';
+                            }
                             
                             // 清除所有高亮
                             const parentList = this.closest('.option-tag-list');
@@ -5237,14 +5314,23 @@
                             }
                             
                             // 如果触摸结束时有目标元素，执行放置
-                            if (touchDraggedItem) {
-                                // 查找触摸结束位置下的元素
+                            if (touchDraggedItem && isTouchDragging) {
                                 const touch = e.changedTouches[0];
                                 const target = document.elementFromPoint(touch.clientX, touch.clientY);
                                 if (target) {
                                     const targetItem = target.closest('.option-tag-item');
                                     if (targetItem && targetItem !== touchDraggedItem && targetItem.dataset.group === touchDragGroup) {
                                         performDrop(touchDraggedItem, targetItem, touchDraggedValue, touchDragGroup);
+                                    } else {
+                                        // 检查是否在列表区域内
+                                        const list = touchDraggedItem.closest('.option-tag-list');
+                                        if (list) {
+                                            const listRect = list.getBoundingClientRect();
+                                            if (touch.clientX >= listRect.left && touch.clientX <= listRect.right &&
+                                                touch.clientY >= listRect.top && touch.clientY <= listRect.bottom) {
+                                                performDropToListEnd(touchDraggedItem, touchDraggedValue, touchDragGroup, touch.clientY);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -5256,17 +5342,24 @@
                             touchStartRect = null;
                             touchOffsetX = 0;
                             touchOffsetY = 0;
+                            isTouchDragging = false;
                         }, { passive: false });
 
                         // 触摸取消
                         item.addEventListener('touchcancel', function(e) {
                             // 清理触摸拖拽状态
+                            if (touchTimer) {
+                                clearTimeout(touchTimer);
+                                touchTimer = null;
+                            }
                             if (touchClone && touchClone.parentNode) {
                                 touchClone.parentNode.removeChild(touchClone);
                                 touchClone = null;
                             }
-                            this.classList.remove('dragging');
-                            this.style.opacity = '1';
+                            if (touchDraggedItem) {
+                                touchDraggedItem.classList.remove('dragging');
+                                touchDraggedItem.style.opacity = '1';
+                            }
                             const parentList = this.closest('.option-tag-list');
                             if (parentList) {
                                 parentList.querySelectorAll('.option-tag-item').forEach(el => {
@@ -5278,6 +5371,8 @@
                             touchDraggedValue = null;
                             touchDragGroup = null;
                             touchStartRect = null;
+                            isTouchDragging = false;
+                            touchTimer = null;
                         }, { passive: false });
                     });
 
