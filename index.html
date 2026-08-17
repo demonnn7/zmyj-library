@@ -5081,6 +5081,8 @@
                     let touchStartY = 0; 
                     let touchTimer = null; 
                     let isTouchDragging = false;
+                    let touchStartElement = null; 
+                    let touchStartTouch = null; 
 
                     // ===== 鼠标拖拽事件 =====
                     const items = list.querySelectorAll('.option-tag-item');
@@ -5154,6 +5156,8 @@
                             touchStartX = touch.clientX;
                             touchStartY = touch.clientY;
                             isTouchDragging = false;
+                            touchStartElement = this;  // 保存元素引用
+                            touchStartTouch = touch;   // 保存 touch 对象
                             
                             // 清除之前的计时器
                             if (touchTimer) {
@@ -5163,19 +5167,29 @@
                             
                             // 设置长按计时器（300ms）
                             touchTimer = setTimeout(function() {
-                                // 检查触摸点是否移动过多（防止滚动时误触发）
-                                if (!touchDraggedItem) return;
+                                // 使用保存的元素引用
+                                if (!touchStartElement) return;
+                                
+                                // 检查触摸点是否移动过多
+                                if (touchStartTouch) {
+                                    // 检查当前触摸位置与起始位置的距离
+                                    const currentTouch = touchStartTouch;
+                                }
                                 
                                 // 开始拖拽
                                 isTouchDragging = true;
-                                touchDraggedItem = e.currentTarget;
+                                touchDraggedItem = touchStartElement;
                                 touchDraggedValue = touchDraggedItem.dataset.value;
                                 touchDragGroup = touchDraggedItem.dataset.group;
                                 touchStartRect = touchDraggedItem.getBoundingClientRect();
                                 
+                                // 使用保存的 touch 位置
+                                const touchX = touchStartTouch ? touchStartTouch.clientX : touchStartRect.left + touchStartRect.width / 2;
+                                const touchY = touchStartTouch ? touchStartTouch.clientY : touchStartRect.top + touchStartRect.height / 2;
+                                
                                 // 计算触摸点相对于元素的位置
-                                touchOffsetX = touch.clientX - touchStartRect.left;
-                                touchOffsetY = touch.clientY - touchStartRect.top;
+                                touchOffsetX = touchX - touchStartRect.left;
+                                touchOffsetY = touchY - touchStartRect.top;
                                 
                                 // 创建拖拽克隆
                                 touchClone = touchDraggedItem.cloneNode(true);
@@ -5189,8 +5203,8 @@
                                 touchClone.style.background = '#eef2ff';
                                 touchClone.style.border = '2px solid #1f4b6e';
                                 touchClone.style.width = touchStartRect.width + 'px';
-                                touchClone.style.left = (touch.clientX - touchOffsetX) + 'px';
-                                touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+                                touchClone.style.left = (touchX - touchOffsetX) + 'px';
+                                touchClone.style.top = (touchY - touchOffsetY) + 'px';
                                 
                                 // 移除克隆中的删除按钮
                                 const delBtn = touchClone.querySelector('.del-opt');
@@ -5202,9 +5216,8 @@
                                 touchDraggedItem.classList.add('dragging');
                                 touchDraggedItem.style.opacity = '0.3';
                                 
-                                
                                 touchTimer = null;
-                            }, 300); 
+                            }, 300);
                             
                             e.preventDefault();
                         }, { passive: false });
@@ -5220,12 +5233,9 @@
                                     if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                                         clearTimeout(touchTimer);
                                         touchTimer = null;
-                                        // 如果已经设置了 touchDraggedItem 但还没开始拖拽，重置
-                                        if (touchDraggedItem) {
-                                            touchDraggedItem = null;
-                                            touchDraggedValue = null;
-                                            touchDragGroup = null;
-                                        }
+                                        // 重置 touchStartElement
+                                        touchStartElement = null;
+                                        touchStartTouch = null;
                                     }
                                 }
                                 return;
@@ -5269,9 +5279,11 @@
                                 touchTimer = null;
                             }
                             
-                            // 如果是点击，不执行任何操作
+                            // 如果是点击（非拖拽），不执行任何操作
                             if (!isTouchDragging) {
                                 // 重置状态
+                                touchStartElement = null;
+                                touchStartTouch = null;
                                 if (touchDraggedItem) {
                                     touchDraggedItem.classList.remove('dragging');
                                     touchDraggedItem.style.opacity = '1';
@@ -5343,6 +5355,8 @@
                             touchOffsetX = 0;
                             touchOffsetY = 0;
                             isTouchDragging = false;
+                            touchStartElement = null;
+                            touchStartTouch = null;
                         }, { passive: false });
 
                         // 触摸取消
@@ -5373,6 +5387,8 @@
                             touchStartRect = null;
                             isTouchDragging = false;
                             touchTimer = null;
+                            touchStartElement = null;
+                            touchStartTouch = null;
                         }, { passive: false });
                     });
 
@@ -5402,6 +5418,8 @@
                         // 只有正在拖拽时才处理
                         if (!isTouchDragging || !touchDraggedItem) {
                             // 重置触摸状态
+                            touchStartElement = null;
+                            touchStartTouch = null;
                             if (touchDraggedItem) {
                                 touchDraggedItem.classList.remove('dragging');
                                 touchDraggedItem.style.opacity = '1';
@@ -5441,6 +5459,8 @@
                         touchDragGroup = null;
                         touchStartRect = null;
                         isTouchDragging = false;
+                        touchStartElement = null;
+                        touchStartTouch = null;
                         // 清除高亮
                         list.querySelectorAll('.option-tag-item').forEach(el => {
                             el.classList.remove('drag-over');
